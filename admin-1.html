@@ -60,9 +60,8 @@
 </style>
 </head>
 <body>
-
-<div id="gateArea">
-  <div class="gate" id="gatePhoneStep">
+<!--<div id="gateArea">
+<div class="gate" id="gatePhoneStep">
     <h1 style="font-size:1.3rem;margin-bottom:10px;">DSBCCL Admin</h1>
     <p class="hint">Sign in with the phone number that manages this site.</p>
     <div class="phone-row">
@@ -80,7 +79,7 @@
   </div>
 </div>
 <div id="recaptcha-container"></div>
-
+-->
 <div class="wrap" id="adminArea" style="display:none;">
   <div class="topbar">
     <h1 style="font-size:1.2rem;">DSBCCL Admin</h1>
@@ -199,7 +198,7 @@ function escapeHtml(str){
 document.getElementById('signOutBtn').onclick = ()=> auth.signOut();
 
 /* ---------- Phone / OTP sign-in ---------- */
-let recaptchaVerifier = null;
+/* let recaptchaVerifier = null;
 let confirmationResult = null;
 
 function setupRecaptcha(){
@@ -247,7 +246,7 @@ document.getElementById('changeNumberBtn').onclick = ()=>{
   if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
 };
 
-/* ---------- Bootstrap / gate admin access ---------- */
+/* ---------- Bootstrap / gate admin access ---------- 
 const ADMIN_DOC = db.collection('config').doc('admins');
 
 auth.onAuthStateChanged(async user=>{
@@ -291,8 +290,9 @@ auth.onAuthStateChanged(async user=>{
     document.getElementById('adminArea').style.display = 'none';
     document.getElementById('gateSignOut').onclick = ()=> auth.signOut();
   }
-});
-
+ });
+ 
+  */
 /* ---------- Tabs ---------- */
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.onclick = ()=>{

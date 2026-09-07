@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DSBCCL — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFEDE6; --paper-raised:#F8F7F3; --ink:#16233A; --ink-soft:#3E4C63;
+    --line:#C9C3B4; --blue:#2F6F9E; --signal:#D9A441; --success:#3B7A57; --danger:#B4472F;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;font-size:0.95rem;padding:10px 12px;border:1.5px solid var(--line);background:#fff;border-radius:2px;color:var(--ink);width:100%;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:2px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);font-weight:600;font-size:0.88rem;}
+  .btn.outline{background:transparent;color:var(--ink);}
+  .btn.danger{border-color:var(--danger);background:var(--danger);color:#fff;}
+  .btn.small{padding:6px 12px;font-size:0.8rem;}
+  .wrap{max-width:920px;margin:0 auto;padding:24px;}
+  .gate{max-width:380px;margin:80px auto;text-align:center;padding:36px;background:var(--paper-raised);border:1px solid var(--line);}
+  .gate .btn{width:100%;justify-content:center;margin-top:12px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:24px;}
+  .topbar .who{font-size:0.85rem;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+  .tabs{display:flex;gap:6px;margin-bottom:28px;flex-wrap:wrap;}
+  .tab{padding:9px 16px;border:1.5px solid var(--line);background:var(--paper-raised);font-size:0.88rem;font-weight:600;color:var(--ink-soft);}
+  .tab.active{border-color:var(--ink);color:var(--ink);background:#fff;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--paper-raised);border:1px solid var(--line);padding:18px;margin-bottom:14px;}
+  .card h3{font-size:1rem;margin-bottom:12px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:600px){.grid2{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+  .field label{font-size:0.8rem;font-weight:600;color:var(--ink-soft);}
+  .row-actions{display:flex;gap:8px;margin-top:10px;}
+  .item-list{display:grid;gap:10px;margin-bottom:18px;}
+  .item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px;background:#fff;border:1px solid var(--line);}
+  .item .meta{font-size:0.8rem;color:var(--ink-soft);}
+  .pill{font-family:'IBM Plex Mono';font-size:0.72rem;padding:4px 10px;border-radius:20px;border:1px solid currentColor;}
+  .pill.received{color:var(--ink-soft);} .pill.reviewing{color:var(--blue);} .pill.in-progress{color:var(--signal);}
+  .pill.completed{color:var(--success);} .pill.cancelled{color:var(--danger);}
+  .empty{color:var(--ink-soft);padding:20px 0;text-align:center;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);padding:12px 20px;font-size:0.88rem;opacity:0;transition:.25s;pointer-events:none;z-index:100;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .hint{font-size:0.8rem;color:var(--ink-soft);margin-bottom:16px;}
+  .checkbox-row{display:flex;align-items:center;gap:8px;}
+  .checkbox-row input{width:auto;}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     GATE
+     No Google or phone verification — just a shared passcode.
+     Simple by design: this is a small internal tool, not a
+     public-facing login system.
+============================================================ -->
+<div id="gateArea">
+  <div class="gate">
+    <h1 style="font-size:1.3rem;margin-bottom:10px;">DSBCCL Admin</h1>
+    <p class="hint" id="gateHint">Enter the admin passcode to continue.</p>
+    <input id="passcodeInput" type="password" placeholder="Passcode" autocomplete="off">
+    <button class="btn" id="unlockBtn">Unlock</button>
+  </div>
+</div>
+
+<div class="wrap" id="adminArea" style="display:none;">
+  <div class="topbar">
+    <h1 style="font-size:1.2rem;">DSBCCL Admin</h1>
+    <div class="who">
+      <span class="mono">Admin session</span>
+      <button class="btn outline small" id="signOutBtn">Lock</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="siteTab">Site</button>
+    <button class="tab" data-panel="sectionsTab">Sections</button>
+    <button class="tab" data-panel="plansTab">Plans</button>
+    <button class="tab" data-panel="ordersTab">Orders</button>
+    <button class="tab" data-panel="adminsTab">Passcode</button>
+  </div>
+
+  <!-- SITE -->
+  <div class="panel active" id="siteTab">
+    <div class="card">
+      <h3>Hero &amp; footer</h3>
+      <p class="hint">This runs the top of the homepage. Changes go live immediately.</p>
+      <div class="field"><label>Hero headline</label><textarea id="siteHeroTitle" rows="2"></textarea></div>
+      <div class="field"><label>Hero subtitle</label><textarea id="siteHeroSubtitle" rows="2"></textarea></div>
+      <div class="field"><label>Footer line</label><input id="siteFooter"></div>
+      <button class="btn" id="saveSiteBtn">Save site content</button>
+    </div>
+    <div class="card">
+      <h3>First time here?</h3>
+      <p class="hint">If Sections and Plans are empty, this fills them with sensible starting content (About Us, founders, and your three plans) that you can then edit freely.</p>
+      <button class="btn outline" id="seedBtn">Seed starter content</button>
+    </div>
+  </div>
+
+  <!-- SECTIONS -->
+  <div class="panel" id="sectionsTab">
+    <p class="hint">These render as numbered blocks in the About Us area, in the order shown.</p>
+    <div class="item-list" id="sectionsList"></div>
+    <div class="card">
+      <h3>Add a section</h3>
+      <div class="field"><label>Title</label><input id="newSecTitle" placeholder="e.g. About us"></div>
+      <div class="field"><label>Body</label><textarea id="newSecBody" rows="3" placeholder="What should visitors read here?"></textarea></div>
+      <div class="field"><label>Order (lower shows first)</label><input id="newSecOrder" type="number" value="1"></div>
+      <button class="btn" id="addSecBtn">Add section</button>
+    </div>
+  </div>
+
+  <!-- PLANS -->
+  <div class="panel" id="plansTab">
+    <p class="hint">Editable pricing cards shown on the homepage.</p>
+    <div class="item-list" id="plansList"></div>
+    <div class="card">
+      <h3>Add a plan</h3>
+      <div class="grid2">
+        <div class="field"><label>Name</label><input id="newPlanName" placeholder="e.g. Monthly"></div>
+        <div class="field"><label>Price (₹)</label><input id="newPlanPrice" type="number" placeholder="299"></div>
+        <div class="field"><label>Billed per</label><input id="newPlanPeriod" placeholder="month / year / lifetime"></div>
+        <div class="field"><label>Order</label><input id="newPlanOrder" type="number" value="1"></div>
+      </div>
+      <div class="field"><label>Tagline</label><input id="newPlanTagline" placeholder="One line describing who it's for"></div>
+      <div class="field"><label>Features (one per line)</label><textarea id="newPlanFeatures" rows="4" placeholder="Unlimited support requests&#10;1 website or app&#10;Hosting included"></textarea></div>
+      <div class="checkbox-row" style="margin-bottom:12px;"><input type="checkbox" id="newPlanHighlight"><label for="newPlanHighlight">Highlight this plan</label></div>
+      <button class="btn" id="addPlanBtn">Add plan</button>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="panel" id="ordersTab">
+    <p class="hint">All incoming requests, newest first. Changing status updates the customer's tracker instantly.</p>
+    <div class="item-list" id="ordersList"></div>
+  </div>
+
+  <!-- PASSCODE -->
+  <div class="panel" id="adminsTab">
+    <p class="hint">Anyone with this passcode can edit the site. Share it only with people who should manage the site (e.g. Abhinav and Purushottam), and change it any time here.</p>
+    <div class="card">
+      <div class="field"><label>New passcode</label><input id="newPasscode" type="text" placeholder="Enter a new passcode"></div>
+      <button class="btn" id="savePasscodeBtn">Save new passcode</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyBDwj4-3S3onrvxaQ_7U5RKpUpwmuGw2cQ",
+  authDomain:        "dsbccl.firebaseapp.com",
+  databaseURL:       "https://dsbccl-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "dsbccl",
+  storageBucket:     "dsbccl.firebasestorage.app",
+  messagingSenderId: "205930025727",
+  appId:             "1:205930025727:web:d2dddbe1018cdb9857f2ca",
+  measurementId:     "G-XZZL8EH410"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const DEFAULT_PASSCODE = 'dsbccl123'; // used only the very first time, before any passcode is set
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- Sign in anonymously so Firestore write rules pass ---------- */
+auth.signInAnonymously().catch(err=> console.error('Anonymous sign-in failed:', err));
+
+/* ---------- Passcode gate ---------- */
+const ADMIN_DOC = db.collection('config').doc('admins');
+let dataInitialized = false;
+
+async function tryUnlock(){
+  const entered = document.getElementById('passcodeInput').value.trim();
+  if(!entered){ toast('Enter the passcode'); return; }
+  const btn = document.getElementById('unlockBtn');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try{
+    const snap = await ADMIN_DOC.get();
+    let correct;
+    if(!snap.exists){
+      // First time ever: bootstrap with the default passcode.
+      await ADMIN_DOC.set({ passcode: DEFAULT_PASSCODE });
+      correct = DEFAULT_PASSCODE;
+    } else {
+      correct = snap.data().passcode || DEFAULT_PASSCODE;
+    }
+    if(entered === correct){
+      sessionStorage.setItem('dsbccl_admin_unlocked', 'true');
+      showAdmin();
+    } else {
+      toast('Incorrect passcode');
+    }
+  }catch(e){
+    toast('Error: ' + e.message);
+  }finally{
+    btn.disabled = false; btn.textContent = 'Unlock';
+  }
+}
+document.getElementById('unlockBtn').onclick = tryUnlock;
+document.getElementById('passcodeInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ e.preventDefault(); tryUnlock(); }
+});
+document.getElementById('signOutBtn').onclick = ()=>{
+  sessionStorage.removeItem('dsbccl_admin_unlocked');
+  document.getElementById('gateArea').style.display = 'block';
+  document.getElementById('adminArea').style.display = 'none';
+  document.getElementById('passcodeInput').value = '';
+};
+
+function showAdmin(){
+  document.getElementById('gateArea').style.display = 'none';
+  document.getElementById('adminArea').style.display = 'block';
+  if(!dataInitialized){
+    dataInitialized = true;
+    loadSiteContent();
+    watchSections();
+    watchPlans();
+    watchOrders();
+  }
+}
+
+// Stay unlocked for the rest of this browser tab session.
+if(sessionStorage.getItem('dsbccl_admin_unlocked') === 'true'){
+  showAdmin();
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.panel).classList.add('active');
+  };
+});
+
+/* ---------- Site content ---------- */
+const SITE_DOC = db.collection('site').doc('home');
+function loadSiteContent(){
+  SITE_DOC.get().then(snap=>{
+    const d = snap.exists ? snap.data() : {};
+    document.getElementById('siteHeroTitle').value = d.heroTitle || '';
+    document.getElementById('siteHeroSubtitle').value = d.heroSubtitle || '';
+    document.getElementById('siteFooter').value = d.footerText || '';
+  });
+}
+document.getElementById('saveSiteBtn').onclick = ()=>{
+  SITE_DOC.set({
+    heroTitle: document.getElementById('siteHeroTitle').value.trim(),
+    heroSubtitle: document.getElementById('siteHeroSubtitle').value.trim(),
+    footerText: document.getElementById('siteFooter').value.trim()
+  }, {merge:true}).then(()=> toast('Site content saved')).catch(e=> toast('Error: '+e.message));
+};
+
+/* ---------- Seed starter content ---------- */
+document.getElementById('seedBtn').onclick = async ()=>{
+  const secSnap = await db.collection('sections').limit(1).get();
+  const planSnap = await db.collection('plans').limit(1).get();
+  const batch = db.batch();
+  let did = false;
+  if(secSnap.empty){
+    did = true;
+    const seedSections = [
+      {title:'About us', body:'DSBCCL is a small engineering team building websites and apps for businesses that need working software without enterprise prices.', order:1},
+      {title:'Who runs it', body:'Founded by Abhinav Kumar and Purushottam Srivastava, who handle everything from first call to launch.', order:2},
+      {title:'How we work', body:"You tell us what you need, we scope it, build it, and keep you updated through this site's order tracker.", order:3}
+    ];
+    seedSections.forEach(s=> batch.set(db.collection('sections').doc(), s));
+  }
+  if(planSnap.empty){
+    did = true;
+    const seedPlans = [
+      {name:'Monthly', price:299, period:'month', tagline:'Ongoing support, billed simply.', features:['Website or app maintenance','Support requests included','Cancel anytime'], highlight:false, order:1},
+      {name:'Yearly', price:2999, period:'year', tagline:'Two months free versus monthly.', features:['Everything in Monthly','Priority turnaround','Yearly check-in call'], highlight:true, order:2},
+      {name:'Lifetime', price:3999, period:'lifetime', tagline:'One payment, support for good.', features:['Everything in Yearly','No renewals, ever','Best value long-term'], highlight:false, order:3}
+    ];
+    seedPlans.forEach(p=> batch.set(db.collection('plans').doc(), p));
+  }
+  if(!did){ toast('Sections and plans already have content.'); return; }
+  batch.commit().then(()=> toast('Starter content added')).catch(e=> toast('Error: '+e.message));
+};
+
+/* ---------- Sections CRUD ---------- */
+function watchSections(){
+  db.collection('sections').orderBy('order','asc').onSnapshot(snap=>{
+    const el = document.getElementById('sectionsList');
+    if(snap.empty){ el.innerHTML = '<p class="empty">No sections yet.</p>'; return; }
+    el.innerHTML = '';
+    snap.forEach(doc=>{
+      const d = doc.data();
+      el.insertAdjacentHTML('beforeend', `
+        <div class="item">
+          <div style="flex:1;">
+            <div class="field"><label>Title</label><input value="${escapeHtml(d.title||'')}" data-id="${doc.id}" class="secTitle"></div>
+            <div class="field"><label>Body</label><textarea rows="2" data-id="${doc.id}" class="secBody">${escapeHtml(d.body||'')}</textarea></div>
+            <div class="field" style="max-width:120px;"><label>Order</label><input type="number" value="${d.order||0}" data-id="${doc.id}" class="secOrder"></div>
+            <div class="row-actions">
+              <button class="btn small" onclick="saveSection('${doc.id}')">Save</button>
+              <button class="btn danger small" onclick="deleteDoc('sections','${doc.id}')">Delete</button>
+            </div>
+          </div>
+        </div>`);
+    });
+  });
+}
+window.saveSection = function(id){
+  const title = document.querySelector(`.secTitle[data-id="${id}"]`).value.trim();
+  const body = document.querySelector(`.secBody[data-id="${id}"]`).value.trim();
+  const order = Number(document.querySelector(`.secOrder[data-id="${id}"]`).value) || 0;
+  db.collection('sections').doc(id).update({title, body, order})
+    .then(()=> toast('Section saved')).catch(e=> toast('Error: '+e.message));
+};
+document.getElementById('addSecBtn').onclick = ()=>{
+  const title = document.getElementById('newSecTitle').value.trim();
+  const body = document.getElementById('newSecBody').value.trim();
+  const order = Number(document.getElementById('newSecOrder').value) || 0;
+  if(!title){ toast('Add a title first'); return; }
+  db.collection('sections').add({title, body, order}).then(()=>{
+    toast('Section added');
+    document.getElementById('newSecTitle').value = '';
+    document.getElementById('newSecBody').value = '';
+  }).catch(e=> toast('Error: '+e.message));
+};
+
+/* ---------- Plans CRUD ---------- */
+function watchPlans(){
+  db.collection('plans').orderBy('order','asc').onSnapshot(snap=>{
+    const el = document.getElementById('plansList');
+    if(snap.empty){ el.innerHTML = '<p class="empty">No plans yet.</p>'; return; }
+    el.innerHTML = '';
+    snap.forEach(doc=>{
+      const d = doc.data();
+      const featuresText = (d.features||[]).join('\n');
+      el.insertAdjacentHTML('beforeend', `
+        <div class="item">
+          <div style="flex:1;">
+            <div class="grid2">
+              <div class="field"><label>Name</label><input value="${escapeHtml(d.name||'')}" data-id="${doc.id}" class="planName"></div>
+              <div class="field"><label>Price (₹)</label><input type="number" value="${d.price||0}" data-id="${doc.id}" class="planPrice"></div>
+              <div class="field"><label>Billed per</label><input value="${escapeHtml(d.period||'')}" data-id="${doc.id}" class="planPeriod"></div>
+              <div class="field"><label>Order</label><input type="number" value="${d.order||0}" data-id="${doc.id}" class="planOrder"></div>
+            </div>
+            <div class="field"><label>Tagline</label><input value="${escapeHtml(d.tagline||'')}" data-id="${doc.id}" class="planTagline"></div>
+            <div class="field"><label>Features (one per line)</label><textarea rows="3" data-id="${doc.id}" class="planFeatures">${escapeHtml(featuresText)}</textarea></div>
+            <div class="checkbox-row" style="margin-bottom:10px;">
+              <input type="checkbox" data-id="${doc.id}" class="planHighlight" ${d.highlight?'checked':''}>
+              <label>Highlight this plan</label>
+            </div>
+            <div class="row-actions">
+              <button class="btn small" onclick="savePlan('${doc.id}')">Save</button>
+              <button class="btn danger small" onclick="deleteDoc('plans','${doc.id}')">Delete</button>
+            </div>
+          </div>
+        </div>`);
+    });
+  });
+}
+window.savePlan = function(id){
+  const name = document.querySelector(`.planName[data-id="${id}"]`).value.trim();
+  const price = Number(document.querySelector(`.planPrice[data-id="${id}"]`).value) || 0;
+  const period = document.querySelector(`.planPeriod[data-id="${id}"]`).value.trim();
+  const order = Number(document.querySelector(`.planOrder[data-id="${id}"]`).value) || 0;
+  const tagline = document.querySelector(`.planTagline[data-id="${id}"]`).value.trim();
+  const features = document.querySelector(`.planFeatures[data-id="${id}"]`).value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const highlight = document.querySelector(`.planHighlight[data-id="${id}"]`).checked;
+  db.collection('plans').doc(id).update({name, price, period, order, tagline, features, highlight})
+    .then(()=> toast('Plan saved')).catch(e=> toast('Error: '+e.message));
+};
+document.getElementById('addPlanBtn').onclick = ()=>{
+  const name = document.getElementById('newPlanName').value.trim();
+  const price = Number(document.getElementById('newPlanPrice').value) || 0;
+  const period = document.getElementById('newPlanPeriod').value.trim();
+  const order = Number(document.getElementById('newPlanOrder').value) || 0;
+  const tagline = document.getElementById('newPlanTagline').value.trim();
+  const features = document.getElementById('newPlanFeatures').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const highlight = document.getElementById('newPlanHighlight').checked;
+  if(!name){ toast('Add a plan name first'); return; }
+  db.collection('plans').add({name, price, period, order, tagline, features, highlight}).then(()=>{
+    toast('Plan added');
+    ['newPlanName','newPlanPrice','newPlanPeriod','newPlanTagline','newPlanFeatures'].forEach(id=> document.getElementById(id).value = '');
+    document.getElementById('newPlanHighlight').checked = false;
+  }).catch(e=> toast('Error: '+e.message));
+};
+
+/* ---------- Orders ---------- */
+function watchOrders(){
+  db.collection('orders').orderBy('createdAt','desc').onSnapshot(snap=>{
+    const el = document.getElementById('ordersList');
+    if(snap.empty){ el.innerHTML = '<p class="empty">No orders yet.</p>'; return; }
+    el.innerHTML = '';
+    snap.forEach(doc=>{
+      const d = doc.data();
+      const ts = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString() : '—';
+      el.insertAdjacentHTML('beforeend', `
+        <div class="item">
+          <div style="flex:1;">
+            <p><strong>${escapeHtml(d.name||'Unknown')}</strong> <span class="meta">· ${escapeHtml(d.phone||'')}</span></p>
+            <p class="meta">${escapeHtml(d.service||'')}${d.plan? ' · plan: '+escapeHtml(d.plan):''} · ${ts}</p>
+            <p>${escapeHtml(d.details||'')}</p>
+            <div class="row-actions" style="align-items:center;">
+              <select onchange="updateOrderStatus('${doc.id}', this.value)">
+                ${['received','reviewing','in-progress','completed','cancelled'].map(s=>`<option value="${s}" ${d.status===s?'selected':''}>${s.replace('-',' ')}</option>`).join('')}
+              </select>
+              <span class="pill ${d.status||'received'}">${(d.status||'received').replace('-',' ')}</span>
+            </div>
+          </div>
+        </div>`);
+    });
+  }, err=>{
+    document.getElementById('ordersList').innerHTML = '<p class="empty">Could not load orders.</p>';
+    console.error(err);
+  });
+}
+window.updateOrderStatus = function(id, status){
+  db.collection('orders').doc(id).update({status, updatedAt: firebase.firestore.FieldValue.serverTimestamp()})
+    .then(()=> toast('Status updated')).catch(e=> toast('Error: '+e.message));
+};
+
+/* ---------- Passcode management ---------- */
+document.getElementById('savePasscodeBtn').onclick = ()=>{
+  const val = document.getElementById('newPasscode').value.trim();
+  if(val.length < 4){ toast('Use at least 4 characters'); return; }
+  ADMIN_DOC.set({ passcode: val }, {merge:true})
+    .then(()=>{ toast('Passcode updated'); document.getElementById('newPasscode').value=''; })
+    .catch(e=> toast('Error: '+e.message));
+};
+
+/* ---------- Shared delete ---------- */
+window.deleteDoc = function(collection, id){
+  if(!confirm('Delete this permanently?')) return;
+  db.collection(collection).doc(id).delete()
+    .then(()=> toast('Deleted')).catch(e=> toast('Error: '+e.message));
+};
+</script>
+</body>
+</html>

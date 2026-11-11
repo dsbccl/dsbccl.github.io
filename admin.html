@@ -1,0 +1,212 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#1F6B3A"><meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Apna Bazar"><meta property="og:description" content="Apna Bazar admin">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Hind:wght@400;500;600&display=swap" rel="stylesheet"><style>
+:root{--bg:#F6F8F4;--ink:#1B2A22;--mute:#5E6E64;--line:#DCE3DB;--green:#1F6B3A;--green-d:#14502A;--gold:#E8A317;--red:#B3341F;--card:#fff}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+body{font:16px/1.5 Hind,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:40px}
+h1,h2,h3,.brand{font-family:"Baloo 2",sans-serif;line-height:1.2}
+a{color:var(--green)}:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* top bar (same as the main site) */
+.top{position:sticky;top:0;z-index:5;background:var(--green);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;box-shadow:0 1px 6px rgba(20,40,28,.18)}
+.brand{font-size:1.5rem;font-weight:800;color:#fff;text-decoration:none}
+.pin{background:#fff;color:var(--ink);border-radius:99px;padding:5px 14px;font-size:.9rem;text-decoration:none}
+main{max-width:1000px;margin:0 auto;padding:18px 16px}
+
+/* headings */
+main h1{font-size:1.7rem;margin-bottom:12px}
+#login h1{font-size:clamp(1.9rem,6vw,3rem);font-weight:800;padding-top:10px}
+h2{font-size:1.25rem;margin:22px 0 10px}h3{font-size:1.05rem;margin-bottom:4px}
+.row h1{margin-bottom:0}
+#app>.row{margin-bottom:18px;align-items:center}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px;box-shadow:0 1px 3px rgba(20,40,28,.08)}
+#sum{border-left:4px solid var(--green)}
+.card{overflow-wrap:anywhere}
+.card p{margin-top:8px}.card .row+p,.card .row+.s{margin-top:4px}
+.card .row>span:not(.s){white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums}
+#sum{line-height:2;padding:12px 16px}#sum strong{font-size:1.1rem;margin-left:6px}
+
+/* forms */
+label{display:block;margin:12px 0 4px;font-weight:500}
+input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:auto;margin-top:5px}
+
+/* buttons */
+button{font:inherit;cursor:pointer;display:inline-block;background:var(--green);color:#fff;border:0;border-radius:8px;padding:10px 18px;text-align:center;font-weight:500;margin:8px 8px 0 0}
+button:hover{background:var(--green-d)}
+button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}button.ghost:hover{background:#F0F3EE}
+button.red{background:var(--red)}button.red:hover{background:#8F2816}
+button:disabled{background:#B9C4BC;cursor:not-allowed}
+
+/* text helpers */
+.s{font-size:.88rem;color:var(--mute)}.mrp{margin:0 20px}.mrp s{text-decoration-thickness:1px}.err{color:var(--red);font-size:.9rem;margin-top:8px}
+strong,.price{font-variant-numeric:tabular-nums}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+
+/* tabs look like the site's segmented control */
+.tabs{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px;background:#fff}
+.tabs button{flex:1;margin:0;border:0;border-radius:0;background:#fff;color:var(--ink);padding:10px}
+.tabs button:hover{background:#F0F3EE}
+.tabs button.on,.tabs button.on:hover{background:var(--green);color:#fff}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}#toast.on{opacity:1}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<title>Apna Bazar – Admin</title></head><body>
+<header class="top"><a class="brand" href="index.html">Apna Bazar</a><span class="pin">Admin</span></header>
+<main>
+<div id="login"></div><div id="reg" hidden></div><div id="app" hidden></div></main><div id="toast" role="status"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script><script>
+// Shared by shop.html and delivery.html. Needs firebase-config.js loaded first.
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = { get(k, d){ try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+const TS = () => firebase.firestore.FieldValue.serverTimestamp();
+const rupees = n => "\u20B9\u00A0" + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });   // symbol, then a gap, then the amount
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2600); }
+
+// role: "shops" | "deliveryPersons"; extra: fields added on first registration; ready(user, data, ref) runs when allowed in
+function boot(role, title, extra, ready){
+  $("#login").innerHTML = `<h1>${esc(title)}</h1><div class="card"><p>Sign in with your Google account.</p>
+    <label style="display:flex;gap:8px"><input type="checkbox" id="agree"><span class="s">I agree to the Terms and Privacy Policy. My details are used only to run deliveries and orders. Support: support.dsbccl@gmail.com</span></label>
+    <p class="err" id="lerr" role="alert"></p><button id="go">Continue with Google</button></div>`;
+  $("#go").onclick = async () => {
+    const s = store.get("ab_auth_p", { fails: 0, lockUntil: 0, last: 0 }), now = Date.now(), e = $("#lerr"); e.textContent = "";
+    if (!$("#agree").checked) return e.textContent = "Please accept the Terms and Privacy Policy.";
+    if (now < s.lockUntil) return e.textContent = "Too many failed attempts. Try again in " + Math.ceil((s.lockUntil - now) / 60000) + " minute(s).";
+    if (now - s.last < 10000) return e.textContent = "Please wait a few seconds.";
+    s.last = now; store.set("ab_auth_p", s);
+    try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); store.set("ab_auth_p", { fails: 0, lockUntil: 0, last: now }); }
+    catch (x) { if (x.code === "auth/popup-closed-by-user") return; s.fails++; if (s.fails >= 5) { s.lockUntil = now + 900000; s.fails = 0; } store.set("ab_auth_p", s); e.textContent = "Sign-in failed (" + (x.code || x.message) + ")."; }
+  };
+  auth.onAuthStateChanged(async u => {
+    $("#login").hidden = !!u; $("#reg").hidden = true; $("#app").hidden = true;
+    if (!u) return;
+    const ref = db.collection(role).doc(u.uid);
+    try {
+      const d = await ref.get();
+      if (d.exists) return ready(u, d.data(), ref);
+      if (extra === null) { // admin page: no self-registration
+        $("#reg").hidden = false;
+        $("#reg").innerHTML = `<h1>Not an admin</h1><div class="card"><p>This account is not an admin. To make it one, add a document in the Firestore collection <strong>admins</strong> with this ID as the document ID:</p><p><strong>${esc(u.uid)}</strong></p><button class="ghost" id="ro">Sign out</button></div>`;
+        $("#ro").onclick = () => auth.signOut(); return;
+      }
+      $("#reg").hidden = false;
+      $("#reg").innerHTML = `<h1>Register</h1><div class="card"><label for="rn">Name</label><input id="rn" value="${esc(u.displayName)}">
+        <label for="rp">Phone (10 digits)</label><input id="rp" inputmode="numeric" maxlength="10">
+        <label for="ra">Area</label><input id="ra">${role === "shops" ? '<label for="rsn">Shop name (shown to customers)</label><input id="rsn"><label for="rpin">Shop pincode (6 digits)</label><input id="rpin" inputmode="numeric" maxlength="6"><label for="rad">Full shop address</label><input id="rad">' : ""}<p class="err" id="rerr" role="alert"></p><button id="rs">Register</button><button class="ghost" id="ro">Sign out</button></div>`;
+      $("#ro").onclick = () => auth.signOut();
+      $("#rs").onclick = async () => {
+        const name = $("#rn").value.trim(), phone = $("#rp").value.replace(/\D/g, "").slice(-10), area = $("#ra").value.trim(), er = $("#rerr");
+        if (name.length < 2) return er.textContent = "Enter your name.";
+        if (!/^[6-9]\d{9}$/.test(phone)) return er.textContent = "Enter a valid 10-digit mobile number.";
+        if (area.length < 2) return er.textContent = "Enter your area.";
+        const more = {};
+        if (role === "shops") {
+          more.shopName = $("#rsn").value.trim(); more.pincode = $("#rpin").value.trim(); more.address = $("#rad").value.trim();
+          if (more.shopName.length < 2) return er.textContent = "Enter your shop name.";
+          if (!/^\d{6}$/.test(more.pincode)) return er.textContent = "Enter a valid 6-digit pincode.";
+          if (more.address.length < 8) return er.textContent = "Enter the full shop address.";
+        }
+        $("#rs").disabled = true; er.textContent = "";
+        try { await ref.set({ name, phone, area, email: u.email || "", ...more, ...extra, createdAt: TS() }); location.reload(); }
+        catch (x) { $("#rs").disabled = false; $("#rerr").textContent = "Could not register (" + (x.code || x.message) + ")."; }
+      };
+    } catch (x) { $("#login").hidden = false; $("#lerr").textContent = "Could not load your account (" + (x.code || x.message) + ")."; }
+  });
+}
+</script>
+<script>
+let people = [], unsub = null;
+boot("admins", "Admin", null, () => {
+  $("#app").hidden = false;
+  $("#app").innerHTML = '<div class="row"><h1>Orders</h1><button class="ghost" id="out">Sign out</button></div>'
+    + '<div class="card"><label for="oq" style="margin-top:0">Search order</label><input id="oq" placeholder="Order ID (e.g. 4821AB) or 10-digit phone" autocomplete="off" autocapitalize="characters" maxlength="10">'
+    + '<p class="s" style="margin-top:6px">Leave empty to see the latest orders.</p>'
+    + '<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="csvpii"><span class="s">Include customer name, phone and address in the CSV</span></label>'
+    + '<button class="ghost" id="csv">Download all orders (CSV)</button></div><div id="orders"></div>'
+    + '<h2>Delivery partners</h2><div id="view"></div>';
+  $("#out").onclick = () => auth.signOut();
+  const LBL = { pending: "Waiting for shop", packed: "Packed", out_for_delivery: "Out for delivery", delivered: "Delivered", cancelled: "Cancelled" };
+  const ago = t => t?.seconds ? new Date(t.seconds * 1000).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "";
+  function drawOrders(docs, note){
+    $("#orders").innerHTML = docs.length ? docs.map(d => { const o = d.data();
+      return `<div class="card"><div class="row"><strong>#${esc(d.id)}</strong><span>${rupees((o.total || 0) + (o.deliveryCharge || 0))}</span></div>
+      <div class="s">${esc(LBL[o.status] || o.status)} · ${esc(ago(o.createdAt))}${o.deliveryPersonName ? " · Delivery: " + esc(o.deliveryPersonName) : ""}</div>
+      <p>${esc((o.items || []).map(i => i.name + " ×" + i.qty).join(", "))}</p>
+      <div class="s">${esc(o.customerName)} · ${esc(o.customerPhone)} · ${esc(o.address)} (${esc(o.pincode)})</div></div>`; }).join("")
+      : `<p class="s">${note || "No orders found."}</p>`;
+  }
+  let qTimer = null, qSeq = 0;
+  async function findOrders(){
+    const raw = $("#oq").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ""), my = ++qSeq, col = db.collection("orders");
+    try {
+      let snap;
+      if (!raw) snap = await col.orderBy("createdAt", "desc").limit(20).get();
+      else if (/^\d{10}$/.test(raw)) snap = await col.where("customerPhone", "==", raw).limit(20).get();
+      else snap = await col.where(firebase.firestore.FieldPath.documentId(), ">=", raw).where(firebase.firestore.FieldPath.documentId(), "<=", raw + "\uf8ff").limit(20).get();
+      if (my === qSeq) drawOrders(snap.docs);
+    } catch (e) { if (my === qSeq) $("#orders").innerHTML = '<p class="err">Could not load orders (' + esc(e.code || e.message) + ').</p>'; }
+  }
+  $("#oq").oninput = () => { clearTimeout(qTimer); qTimer = setTimeout(findOrders, 350); };
+  findOrders();
+
+  // Download every order as a CSV. Customer details are left out unless the box is ticked.
+  // Text cells starting with = + - @ get a leading ' so spreadsheets never run them as formulas.
+  const csvCell = v => {
+    let s = v == null ? "" : String(v);
+    if (typeof v === "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  $("#csv").onclick = async () => {
+    const btn = $("#csv"), pii = $("#csvpii").checked;
+    btn.disabled = true; toast("Preparing CSV...");
+    try {
+      const head = ["Order ID", "Status", "Created at", "Items", "Items total", "Delivery charge", "Grand total", "Delivery partner", "Pincode"];
+      if (pii) head.push("Customer name", "Customer phone", "Address");
+      const rows = [head]; let last = null, n = 0;
+      for (;;) {
+        let q = db.collection("orders").orderBy(firebase.firestore.FieldPath.documentId()).limit(500);
+        if (last) q = q.startAfter(last);
+        const snap = await q.get();
+        if (snap.empty) break;
+        snap.docs.forEach(d => {
+          const o = d.data(), t = o.total || 0, c = o.deliveryCharge || 0;
+          const r = [d.id, o.status || "", o.createdAt?.seconds ? new Date(o.createdAt.seconds * 1000).toISOString() : "",
+            (o.items || []).map(i => i.name + " x" + i.qty).join("; "), t, c, t + c, o.deliveryPersonName || "", o.pincode || ""];
+          if (pii) r.push(o.customerName || "", o.customerPhone || "", o.address || "");
+          rows.push(r); n++;
+        });
+        last = snap.docs[snap.docs.length - 1];
+        if (snap.size < 500) break;
+      }
+      const blob = new Blob(["﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "apna-bazar-orders-" + new Date().toISOString().slice(0, 10) + ".csv";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      toast(n + " orders downloaded");
+    } catch (e) { toast("Could not download (" + (e.code || e.message) + ")"); }
+    btn.disabled = false;
+  };
+
+  if (unsub) unsub();
+  unsub = db.collection("deliveryPersons").onSnapshot(s => { people = s.docs.map(d => ({ id: d.id, ...d.data() })); draw(); }, e => toast("Could not load (" + e.code + ")"));
+  function draw(){
+    const list = [...people].sort((a, b) => (a.approved === true) - (b.approved === true) || (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    $("#view").innerHTML = list.length ? list.map(p => `<div class="card"><div class="row"><strong>${esc(p.name)}</strong><span class="s">${p.approved ? "Approved" : "Waiting"}</span></div>
+      <div class="s">${esc(p.phone)} · ${esc(p.area)} · ${esc(p.email)}</div>
+      ${p.approved ? `<button class="red" data-no="${p.id}">Revoke</button>` : `<button data-ok="${p.id}">Approve</button>`}</div>`).join("") : '<p class="s">No delivery partners yet.</p>';
+    document.querySelectorAll("[data-ok]").forEach(b => b.onclick = () => set(b.dataset.ok, true));
+    document.querySelectorAll("[data-no]").forEach(b => b.onclick = () => set(b.dataset.no, false));
+  }
+  const set = (id, v) => db.collection("deliveryPersons").doc(id).update({ approved: v }).then(() => toast(v ? "Approved" : "Revoked")).catch(e => toast("Failed (" + e.code + ")"));
+});
+</script></body></html>

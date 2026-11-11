@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#1F6B3A"><meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Apna Bazar"><meta property="og:description" content="Apna Bazar partner portal">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Hind:wght@400;500;600&display=swap" rel="stylesheet"><style>
+:root{--bg:#F6F8F4;--ink:#1B2A22;--mute:#5E6E64;--line:#DCE3DB;--green:#1F6B3A;--green-d:#14502A;--gold:#E8A317;--red:#B3341F;--card:#fff}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+body{font:16px/1.5 Hind,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:40px}
+h1,h2,h3,.brand{font-family:"Baloo 2",sans-serif;line-height:1.2}
+a{color:var(--green)}:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* top bar (same as the main site) */
+.top{position:sticky;top:0;z-index:5;background:var(--green);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;box-shadow:0 1px 6px rgba(20,40,28,.18)}
+.brand{font-size:1.5rem;font-weight:800;color:#fff;text-decoration:none}
+.pin{background:#fff;color:var(--ink);border-radius:99px;padding:5px 14px;font-size:.9rem;text-decoration:none}
+main{max-width:1000px;margin:0 auto;padding:18px 16px}
+
+/* headings */
+main h1{font-size:1.7rem;margin-bottom:12px}
+#login h1{font-size:clamp(1.9rem,6vw,3rem);font-weight:800;padding-top:10px}
+h2{font-size:1.25rem;margin:22px 0 10px}h3{font-size:1.05rem;margin-bottom:4px}
+.row h1{margin-bottom:0}
+#app>.row{margin-bottom:18px;align-items:center}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px;box-shadow:0 1px 3px rgba(20,40,28,.08)}
+#sum{border-left:4px solid var(--green)}
+.card{overflow-wrap:anywhere}
+.card p{margin-top:8px}.card .row+p,.card .row+.s{margin-top:4px}
+.card .row>span:not(.s){white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums}
+#sum{line-height:2;padding:12px 16px}#sum strong{font-size:1.1rem;margin-left:6px}
+
+/* forms */
+label{display:block;margin:12px 0 4px;font-weight:500}
+input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:auto;margin-top:5px}
+
+/* buttons */
+button{font:inherit;cursor:pointer;display:inline-block;background:var(--green);color:#fff;border:0;border-radius:8px;padding:10px 18px;text-align:center;font-weight:500;margin:8px 8px 0 0}
+button:hover{background:var(--green-d)}
+button.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}button.ghost:hover{background:#F0F3EE}
+button.red{background:var(--red)}button.red:hover{background:#8F2816}
+button:disabled{background:#B9C4BC;cursor:not-allowed}
+
+/* text helpers */
+.s{font-size:.88rem;color:var(--mute)}.mrp{margin:0 20px}.mrp s{text-decoration-thickness:1px}.err{color:var(--red);font-size:.9rem;margin-top:8px}
+strong,.price{font-variant-numeric:tabular-nums}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+
+/* tabs look like the site's segmented control */
+.tabs{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px;background:#fff}
+.tabs button{flex:1;margin:0;border:0;border-radius:0;background:#fff;color:var(--ink);padding:10px}
+.tabs button:hover{background:#F0F3EE}
+.tabs button.on,.tabs button.on:hover{background:var(--green);color:#fff}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}#toast.on{opacity:1}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style><title>Apna Bazar – Shop panel</title></head><body>
+<header class="top"><a class="brand" href="index.html">Apna Bazar</a><span class="pin">Shop panel</span></header>
+<main>
+<div id="login"></div><div id="reg" hidden></div><div id="app" hidden></div></main><div id="toast" role="status"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script><script>
+// Shared by shop.html and delivery.html. Needs firebase-config.js loaded first.
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = { get(k, d){ try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+const TS = () => firebase.firestore.FieldValue.serverTimestamp();
+const rupees = n => "\u20B9\u00A0" + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });   // symbol, then a gap, then the amount
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2600); }
+
+// role: "shops" | "deliveryPersons"; extra: fields added on first registration; ready(user, data, ref) runs when allowed in
+function boot(role, title, extra, ready){
+  $("#login").innerHTML = `<h1>${esc(title)}</h1><div class="card"><p>Sign in with your Google account.</p>
+    <label style="display:flex;gap:8px"><input type="checkbox" id="agree"><span class="s">I agree to the Terms and Privacy Policy. My details are used only to run deliveries and orders. Support: support.dsbccl@gmail.com</span></label>
+    <p class="err" id="lerr" role="alert"></p><button id="go">Continue with Google</button></div>`;
+  $("#go").onclick = async () => {
+    const s = store.get("ab_auth_p", { fails: 0, lockUntil: 0, last: 0 }), now = Date.now(), e = $("#lerr"); e.textContent = "";
+    if (!$("#agree").checked) return e.textContent = "Please accept the Terms and Privacy Policy.";
+    if (now < s.lockUntil) return e.textContent = "Too many failed attempts. Try again in " + Math.ceil((s.lockUntil - now) / 60000) + " minute(s).";
+    if (now - s.last < 10000) return e.textContent = "Please wait a few seconds.";
+    s.last = now; store.set("ab_auth_p", s);
+    try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); store.set("ab_auth_p", { fails: 0, lockUntil: 0, last: now }); }
+    catch (x) { if (x.code === "auth/popup-closed-by-user") return; s.fails++; if (s.fails >= 5) { s.lockUntil = now + 900000; s.fails = 0; } store.set("ab_auth_p", s); e.textContent = "Sign-in failed (" + (x.code || x.message) + ")."; }
+  };
+  auth.onAuthStateChanged(async u => {
+    $("#login").hidden = !!u; $("#reg").hidden = true; $("#app").hidden = true;
+    if (!u) return;
+    const ref = db.collection(role).doc(u.uid);
+    try {
+      const d = await ref.get();
+      if (d.exists) return ready(u, d.data(), ref);
+      if (extra === null) { // admin page: no self-registration
+        $("#reg").hidden = false;
+        $("#reg").innerHTML = `<h1>Not an admin</h1><div class="card"><p>This account is not an admin. To make it one, add a document in the Firestore collection <strong>admins</strong> with this ID as the document ID:</p><p><strong>${esc(u.uid)}</strong></p><button class="ghost" id="ro">Sign out</button></div>`;
+        $("#ro").onclick = () => auth.signOut(); return;
+      }
+      $("#reg").hidden = false;
+      $("#reg").innerHTML = `<h1>Register</h1><div class="card"><label for="rn">Name</label><input id="rn" value="${esc(u.displayName)}">
+        <label for="rp">Phone (10 digits)</label><input id="rp" inputmode="numeric" maxlength="10">
+        <label for="ra">Area</label><input id="ra">${role === "shops" ? '<label for="rsn">Shop name (shown to customers)</label><input id="rsn"><label for="rpin">Shop pincode (6 digits)</label><input id="rpin" inputmode="numeric" maxlength="6"><label for="rad">Full shop address</label><input id="rad">' : ""}<p class="err" id="rerr" role="alert"></p><button id="rs">Register</button><button class="ghost" id="ro">Sign out</button></div>`;
+      $("#ro").onclick = () => auth.signOut();
+      $("#rs").onclick = async () => {
+        const name = $("#rn").value.trim(), phone = $("#rp").value.replace(/\D/g, "").slice(-10), area = $("#ra").value.trim(), er = $("#rerr");
+        if (name.length < 2) return er.textContent = "Enter your name.";
+        if (!/^[6-9]\d{9}$/.test(phone)) return er.textContent = "Enter a valid 10-digit mobile number.";
+        if (area.length < 2) return er.textContent = "Enter your area.";
+        const more = {};
+        if (role === "shops") {
+          more.shopName = $("#rsn").value.trim(); more.pincode = $("#rpin").value.trim(); more.address = $("#rad").value.trim();
+          if (more.shopName.length < 2) return er.textContent = "Enter your shop name.";
+          if (!/^\d{6}$/.test(more.pincode)) return er.textContent = "Enter a valid 6-digit pincode.";
+          if (more.address.length < 8) return er.textContent = "Enter the full shop address.";
+        }
+        $("#rs").disabled = true; er.textContent = "";
+        try { await ref.set({ name, phone, area, email: u.email || "", ...more, ...extra, createdAt: TS() }); location.reload(); }
+        catch (x) { $("#rs").disabled = false; $("#rerr").textContent = "Could not register (" + (x.code || x.message) + ")."; }
+      };
+    } catch (x) { $("#login").hidden = false; $("#lerr").textContent = "Could not load your account (" + (x.code || x.message) + ")."; }
+  });
+}
+</script>
+<script>
+let tab = "orders", orders = [], prods = [], unsubs = [];
+const pct = (m, p) => m > p && p > 0 ? Math.round((m - p) / m * 100) : 0;   // discount % from printed MRP and selling price
+function img(file){ return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => { const i = new Image(); i.onload = () => { const k = Math.min(1, 400 / Math.max(i.width, i.height)), c = document.createElement("canvas"); c.width = i.width * k; c.height = i.height * k; c.getContext("2d").drawImage(i, 0, 0, c.width, c.height); res(c.toDataURL("image/jpeg", 0.6)); }; i.onerror = rej; i.src = r.result; }; r.onerror = rej; r.readAsDataURL(file); }); }
+boot("shops", "Shop panel", {}, (u, shop, ref) => {
+  $("#app").hidden = false;
+  $("#app").innerHTML = `<div class="row"><h1 id="shopTitle">${esc(shop.shopName || shop.name)}</h1><button class="ghost" id="out">Sign out</button></div>
+   <div class="tabs"><button id="t1">Orders</button><button id="t2">Products</button></div><div id="view"></div>`;
+  $("#out").onclick = () => auth.signOut();
+  $("#t1").onclick = () => { tab = "orders"; draw(); }; $("#t2").onclick = () => { tab = "products"; draw(); };
+  unsubs.forEach(f => f());
+  unsubs = [
+    db.collection("orders").where("shopIds", "array-contains", u.uid).onSnapshot(s => { orders = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); draw(); }, e => toast("Orders: " + e.code)),
+    db.collection("products").where("shopId", "==", u.uid).onSnapshot(s => { prods = s.docs.map(d => ({ id: d.id, ...d.data() })); draw(); }, e => toast("Products: " + e.code))
+  ];
+  function draw(){
+    $("#t1").className = tab === "orders" ? "on" : ""; $("#t2").className = tab === "products" ? "on" : "";
+    if (tab === "orders") {
+      $("#view").innerHTML = orders.length ? orders.map(o => {
+        const mine = o.items.filter(i => i.shopId === u.uid), sum = mine.reduce((a, i) => a + i.price * i.qty, 0);
+        return `<div class="card"><div class="row"><strong>${esc(o.customerName)}</strong><span>${rupees(sum)}</span></div>
+        <div class="s">${esc(o.customerPhone)} · ${esc(o.address)}, ${esc(o.pincode || o.area || "")}</div><p>${esc(mine.map(i => i.name + " ×" + i.qty).join(", "))}</p>
+        <p class="s">Status: ${esc(o.status)} · Settlement: ${esc(o.settlement)}</p>
+        ${o.status === "pending" ? ((o.packedShopIds || []).includes(u.uid) ? `<p class="s">You packed your items. Waiting for the other shop(s).</p>` : `<button data-pack="${o.id}">Mark packed</button>`) : ""}
+        ${o.settlement === "pending" ? ((o.shopReceived || {})[u.uid] != null ? `<p class="s">You confirmed ${rupees(o.shopReceived[u.uid])}. Waiting for the other shop(s).</p>` : `<button data-acc="${o.id}" data-amt="${sum}">Cash received (${rupees(sum)})</button>`) : ""}</div>`;
+      }).join("") : '<p class="s">No orders yet.</p>';
+      // Each shop packs its own items; the order becomes "packed" only when every shop in it has packed.
+      document.querySelectorAll("[data-pack]").forEach(b => b.onclick = () => { const r = db.collection("orders").doc(b.dataset.pack);
+        db.runTransaction(async t => { const o = (await t.get(r)).data(), done = [...new Set([...(o.packedShopIds || []), u.uid])];
+          t.update(r, { packedShopIds: done, ...((o.shopIds || []).every(x => done.includes(x)) ? { status: "packed" } : {}), updatedAt: TS() }); }).catch(e => toast(e.code || e.message)); });
+      // Each shop confirms only its own share of the cash; the order is settled when every shop has confirmed.
+      document.querySelectorAll("[data-acc]").forEach(b => b.onclick = () => { const r = db.collection("orders").doc(b.dataset.acc), amt = Number(b.dataset.amt);
+        db.runTransaction(async t => { const o = (await t.get(r)).data(), got = { ...(o.shopReceived || {}), [u.uid]: amt };
+          t.update(r, { shopReceived: got, ...((o.shopIds || []).every(x => got[x] != null) ? { settlement: "accepted", shopReceivedAmount: Object.values(got).reduce((a, v) => a + v, 0) } : {}), updatedAt: TS() }); }).catch(e => toast(e.code || e.message)); });
+    } else {
+      $("#view").innerHTML = `<div class="card"><h3>Shop name</h3><p class="s">This name is shown to customers on your products.</p><label for="sn">Shop name</label><input id="sn" maxlength="60" value="${esc(shop.shopName || shop.name)}"><p class="err" id="snerr" role="alert"></p><button id="snb">Save shop name</button></div>` + (shop.pincode ? "" : `<div class="card"><h3>Set your shop pincode</h3><label for="sp">Pincode</label><input id="sp" inputmode="numeric" maxlength="6"><label for="sd">Full shop address</label><input id="sd" value="${esc(shop.address || "")}"><button id="sps">Save</button></div>`) + `<div class="card"><h3>Add product</h3>
+       <label for="pn">Product name</label><input id="pn"><label for="pm">Printed MRP (₹)</label><input id="pm" type="number" min="1" step="any" inputmode="decimal">
+       <label for="pp">Your selling price (₹)</label><input id="pp" type="number" min="1" step="any" inputmode="decimal"><p class="s" id="pd" aria-live="polite">Leave MRP empty if there is no discount.</p>
+       <label for="pu">Unit (1 kg, 500 g, 1 L…)</label><input id="pu"><label for="pc">Category</label><input id="pc">
+       <label for="ps">Stock</label><input id="ps" type="number" min="0"><p class="s">Shown to customers with pincode <strong>${esc(shop.pincode || "—")}</strong></p>
+       <label for="pi">Photo (optional)</label><input id="pi" type="file" accept="image/*"><p class="err" id="perr" role="alert"></p><button id="add">Add product</button></div>` +
+       prods.map(p => `<div class="card row"><div><strong>${esc(p.name)}</strong><div class="s">${rupees(p.price)}${p.mrp > p.price ? ` <span class="mrp">MRP ₹\u00A0<s>${Number(p.mrp).toLocaleString("en-IN", { maximumFractionDigits: 2 })}</s></span>${pct(p.mrp, p.price)}% off` : ""} · ${esc(p.unit)} · ${esc(p.pincode || "no pincode")}</div></div>
+       <div><input type="number" min="0" value="${p.stock}" data-st="${p.id}" style="width:80px" aria-label="Stock"><button data-del="${p.id}" class="red">Delete</button></div></div>`).join("");
+      $("#snb").onclick = () => { const v = $("#sn").value.trim(); if (v.length < 2) return $("#snerr").textContent = "Enter a shop name (at least 2 letters).";
+        const b = db.batch(); b.update(ref, { shopName: v }); prods.forEach(p => b.update(db.collection("products").doc(p.id), { shopName: v }));
+        b.commit().then(() => { shop.shopName = v; $("#shopTitle").textContent = v; toast("Shop name saved"); draw(); }).catch(e => $("#snerr").textContent = "Could not save (" + (e.code || e.message) + ")."); };
+      if ($("#sps")) $("#sps").onclick = () => { const pin = $("#sp").value.trim(); if (!/^\d{6}$/.test(pin)) return toast("Enter a valid 6-digit pincode"); ref.update({ pincode: pin, address: $("#sd").value.trim() }).then(() => { shop.pincode = pin; toast("Saved"); draw(); }).catch(e => toast(e.code)); };
+      const calc = () => { const m = Number($("#pm").value), p = Number($("#pp").value); $("#pd").textContent = !m || !p ? "Leave MRP empty if there is no discount." : p > m ? "Selling price cannot be more than the printed MRP." : p === m ? "No discount." : "Customers will see " + pct(m, p) + "% off"; };
+      $("#pm").oninput = calc; $("#pp").oninput = calc;
+      $("#add").onclick = async () => {
+        const name = $("#pn").value.trim(), price = Number($("#pp").value), stock = parseInt($("#ps").value, 10), unit = $("#pu").value.trim(), area = shop.area, pincode = shop.pincode;
+        if (!name || !(price > 0) || !(stock >= 0) || !unit || !/^\d{6}$/.test(pincode || "")) return $("#perr").textContent = "Fill name, price, unit, stock, and set your shop pincode first.";
+        const mrp = $("#pm").value.trim() ? Number($("#pm").value) : price;
+        if (!(mrp >= price)) return $("#perr").textContent = "Printed MRP must be equal to or more than your selling price.";
+        try { const f = $("#pi").files[0]; const imageUrl = f ? await img(f) : "";
+          await db.collection("products").add({ shopId: u.uid, shopName: shop.shopName || shop.name, name, price, mrp, unit, category: $("#pc").value.trim(), stock, area, pincode, imageUrl, createdAt: TS() }); toast("Product added"); }
+        catch (e) { $("#perr").textContent = "Could not add (" + (e.code || e.message) + ")."; }
+      };
+      document.querySelectorAll("[data-st]").forEach(i => i.onchange = () => db.collection("products").doc(i.dataset.st).update({ stock: Math.max(0, parseInt(i.value, 10) || 0) }).then(() => toast("Stock saved")).catch(e => toast(e.code)));
+      document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { if (b.dataset.sure) db.collection("products").doc(b.dataset.del).delete().catch(e => toast(e.code)); else { b.dataset.sure = 1; b.textContent = "Tap again to delete"; } });
+    }
+  }
+  draw();
+});
+</script></body></html>

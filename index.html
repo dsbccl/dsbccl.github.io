@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apna Bazar – Groceries from your local shops</title>
+<meta name="description" content="Order groceries from shops in your own area. Pay on delivery.">
+<meta property="og:type" content="website"><meta property="og:title" content="Apna Bazar"><meta property="og:description" content="Order groceries from shops in your own area. Pay on delivery."><meta property="og:image" content="og-image.png"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#1F6B3A">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Hind:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F8F4;--ink:#1B2A22;--mute:#5E6E64;--line:#DCE3DB;--green:#1F6B3A;--green-d:#14502A;--gold:#E8A317;--red:#B3341F;--card:#fff}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+body{font:16px/1.5 Hind,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:84px}
+h1,h2,h3,.brand{font-family:"Baloo 2",sans-serif;line-height:1.2}
+a{color:var(--green)}button{font:inherit;cursor:pointer}:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.top{position:sticky;top:0;z-index:5;background:var(--green);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;box-shadow:0 1px 6px rgba(20,40,28,.18)}
+.brand{font-size:1.5rem;font-weight:800;color:#fff;text-decoration:none}
+.pin{background:#fff;color:var(--ink);border-radius:99px;padding:5px 14px;font-size:.9rem;text-decoration:none}
+main{max-width:1000px;margin:0 auto;padding:18px 16px}
+.pg{font-size:1.7rem;margin-bottom:12px}h2{font-size:1.25rem;margin:22px 0 10px}
+.muted{color:var(--mute);font-size:.92rem}.err{color:var(--red);font-size:.9rem;margin-top:8px}
+.hero{padding:22px 0 6px}.hero h1{font-size:clamp(1.9rem,6vw,3rem);font-weight:800;max-width:18ch}.hero p{color:var(--mute);margin:8px 0 16px}
+.trust{display:flex;gap:6px 18px;flex-wrap:wrap;list-style:none;padding:0;margin:14px 0;font-size:.9rem;color:var(--green-d);font-weight:500}.trust li::before{content:"\2713";margin-right:6px;font-weight:700}
+.pinbox{display:flex;gap:8px;max-width:360px}
+input,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+label{display:block;margin:12px 0 4px;font-weight:500}
+.btn{display:inline-block;background:var(--green);color:#fff;border:0;border-radius:8px;padding:10px 18px;text-decoration:none;text-align:center;font-weight:500}
+.btn:hover{background:var(--green-d)}.btn.wide{display:block;width:100%;margin-top:12px}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.ghost:hover{background:#F0F3EE}
+.btn.danger{background:var(--red)}.btn.out{background:#fff;color:var(--red);border:1px solid var(--red)}
+.btn:disabled{background:#B9C4BC;cursor:not-allowed}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 12px;text-align:center;text-decoration:none;color:var(--ink);font-weight:500}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 14px}.chip.on{background:var(--green);color:#fff;border-color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.p{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(20,40,28,.08)}
+.p .img{position:relative;overflow:hidden;flex:none;aspect-ratio:4/3;background:#E7EFE4;display:grid;place-items:center;font:800 2.4rem "Baloo 2";color:var(--green)}
+.p .img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.p .b{position:relative;z-index:1;background:#fff;border-top:1px solid var(--line);padding:12px 14px;display:flex;flex-direction:column;gap:2px;flex:1}
+.p h3{font-size:1.02rem}.p .s,.s{font-size:.85rem;color:var(--mute)}.p .row{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px}
+.add{background:var(--green);color:#fff;border:0;border-radius:8px;padding:6px 14px}.add:disabled{background:#B9C4BC}
+.qty{display:flex;align-items:center;gap:8px}.qty button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:#fff}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.line{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.line:last-child{border:0}.tot{font-size:1.1rem}
+.menu{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.menu a{display:flex;justify-content:space-between;padding:14px 16px;text-decoration:none;color:var(--ink);border-bottom:1px solid var(--line)}.menu a:last-child{border:0}.menu a:hover{background:#F0F3EE}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}.seg button{flex:1;padding:10px;border:0;background:#fff}.seg .on{background:var(--green);color:#fff}
+.consentbox{border:1px solid var(--line);border-radius:10px;background:#fff;padding:14px 16px;font-size:.92rem}
+.consentbox table{width:100%;border-collapse:collapse;margin:8px 0}.consentbox th,.consentbox td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}.consentbox th{font-size:.78rem;text-transform:uppercase;color:var(--mute)}
+.ck{display:flex;gap:10px;align-items:flex-start;margin:12px 0;font-weight:400}.ck input{width:auto;margin-top:5px}
+.danger-zone{border:1px solid var(--red);border-radius:12px;padding:14px 16px;margin-top:18px;background:#FFF8F6}
+.doc h3{font-size:1.05rem;margin:16px 0 4px}.doc ul{padding-left:20px}.doc p,.doc li{margin-bottom:4px}
+.foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);color:var(--mute);font-size:.9rem;text-align:center}
+#tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom,0)}
+#tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;font-size:.72rem;color:var(--mute);text-decoration:none;position:relative}
+#tabs a.on{color:var(--green);font-weight:600}#tabs svg{width:22px;height:22px}
+#cc{position:absolute;top:2px;left:calc(50% + 4px);background:var(--gold);color:#000;border-radius:99px;font-size:.65rem;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 4px}
+#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}#toast.on{opacity:1}
+#cookie{position:fixed;left:10px;right:10px;bottom:72px;z-index:15;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.85rem;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+@media(min-width:760px){#tabs{left:50%;right:auto;transform:translateX(-50%);width:560px;bottom:12px;border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.12)}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity}
+.strip .p{min-width:165px;max-width:165px;scroll-snap-align:start}
+.recent{margin:10px 0 4px}.lnk{background:none;border:0;color:var(--green);text-decoration:underline;padding:0 6px}
+.sk .img,.sk i{background:linear-gradient(90deg,#E7EFE4 25%,#F3F7F1 50%,#E7EFE4 75%);background-size:200% 100%;animation:sh 1.2s infinite}
+.sk i{display:block;height:12px;border-radius:6px;margin:6px 0}
+@keyframes sh{to{background-position:-200% 0}}
+strong,.price{font-variant-numeric:tabular-nums}
+.pr{display:flex;flex-direction:column;line-height:1.3} .mrp{display:block;font-size:.85rem;color:var(--mute)}
+.rs{margin-right:30px}
+.off{display:block;font-size:.8rem;font-weight:600;color:var(--green-d)};margin-right:20px}.mrp s{text-decoration-thickness:1px}.off{font-size:.8rem;font-weight:600;color:var(--green-d)}
+</style></head>
+<body>
+<header class="top"><a class="brand" href="#/home">Apna Bazar</a><a class="pin" id="pin" href="#/pincode">Enter pincode</a></header>
+<main id="view"></main>
+<div id="cookie" hidden><span>Essential browser storage only: it keeps your cart, pincode and sign-in safety checks. No advertising or tracking cookies. <a href="#/privacy">Privacy Notice</a></span><button class="btn" id="cookieOk">Acknowledge</button></div>
+<nav id="tabs" aria-label="Main">
+<a data-t="home" href="#/home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+<a data-t="products" href="#/products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>Products</a>
+<a data-t="search" href="#/search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg>Search</a>
+<a data-t="cart" href="#/cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.5 11h10L20 7H6"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>Cart<span id="cc" hidden>0</span></a>
+<a data-t="orders" href="#/orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg>Orders</a>
+<a data-t="account" href="#/account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Account</a>
+</nav>
+<div id="toast" role="status"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const rupees = n => "\u20B9\u00A0" + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });   // symbol, then a gap, then the amount
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = { get(k, d){ try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+const TS = () => firebase.firestore.FieldValue.serverTimestamp();
+const go = h => { location.hash = h; };
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2800); }
+const view = h => { $("#view").innerHTML = h; if (lastHash !== location.hash) { window.scrollTo(0, 0); lastHash = location.hash; } };
+
+let products = store.get("ab_pcache", []), loaded = store.get("ab_pcache", []).length > 0, sugFn = null, lastHash = "", cart = store.get("ab_cart", {}), user = null, profile = null, parentStatus = "", parentMode = false;
+let area = store.get("ab_area", ""), cat = "All", mode = "adult", gridFn = null, reqUnsub = null;
+const visible = () => products.filter(p => String(p.pincode) === area);
+const cartItems = () => Object.entries(cart).map(([id, qty]) => ({ p: products.find(x => x.id === id), qty })).filter(x => x.p);
+const cartSum = () => cartItems().reduce((s, x) => s + x.p.price * x.qty, 0);
+const saveCart = () => store.set("ab_cart", cart);
+const DELIVERY_CHARGE = 20;   // flat per order (same-pincode delivery); the customer sees it before ordering
+const totalRows = () => `<div class="line"><span>Items total</span><strong>${rupees(cartSum())}</strong></div><div class="line"><span>Delivery charge</span><strong>${rupees(DELIVERY_CHARGE)}</strong></div><div class="line tot"><span>Total to pay</span><strong>${rupees(cartSum() + DELIVERY_CHARGE)}</strong></div>`;
+const agoText = t => { const s = t?.seconds; if (!s) return "Just now"; const m = Math.floor((Date.now() / 1000 - s) / 60); return m < 1 ? "Just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.floor(m / 60) + " h ago" : new Date(s * 1000).toLocaleDateString("en-IN"); };
+const signedIn = () => user && !user.isAnonymous;
+
+/* ---------- Legal text ---------- */
+const DATA_TABLE = `<table><tr><th>Personal data</th><th>Purpose</th></tr><tr><td>Name and email (from Google)</td><td>Create and secure your account</td></tr><tr><td>Phone, delivery address, pincode</td><td>Deliver your orders</td></tr><tr><td>Order history</td><td>Order tracking, support and accounts</td></tr></table>`;
+const INFO = {
+  terms: ["Terms of Use", `<p>Apna Bazar connects you with shops in your area. Prices and stock are set by each shop. Orders are paid in cash on delivery. A shop may cancel an order if an item is out of stock.</p>`],
+  privacy: ["Privacy Notice", `<h3>Who we are</h3><p>Apna Bazar is a local grocery ordering service. For your personal data we act as the Data Fiduciary under the Digital Personal Data Protection Act, 2023 (DPDP Act).</p>
+  <h3>Data we process, and why</h3>${DATA_TABLE}
+  <h3>Who can see it</h3><p>The shop sees the name, phone and address needed to prepare your order. The delivery partner sees them only to deliver it. Data is stored on Google Cloud Firestore. We do not sell your data or use it for advertising.</p>
+  <h3>How long we keep it</h3><p>Account details are kept until you delete your account. Order records may be retained for as long as accounting and legal obligations require.</p>
+  <h3>Your rights</h3><ul><li>Access a summary of your data, from Account or by email.</li><li>Correct your details in Account, My details.</li><li>Withdraw consent and erase your account at any time in Account, Privacy &amp; consents.</li><li>Seek grievance redressal, and nominate a person to exercise your rights if you die or cannot act.</li></ul>
+  <h3>Children (under 18)</h3><p>A child can use Apna Bazar only after a parent or guardian verifies their email address and approves the account. We do not track or profile children and show no advertising.</p>
+  <h3>Grievances</h3><p>Write to support.dsbccl@gmail.com. If your complaint is not resolved, you may approach the Data Protection Board of India.</p>`]
+};
+const docPage = k => { gridFn = null; view(`<h1 class="pg">${INFO[k][0]}</h1><div class="card doc">${INFO[k][1]}</div><a class="btn ghost" href="javascript:history.back()">Back</a>`); };
+
+/* ---------- Router ---------- */
+const V = {};
+function route(){
+  const [path, q] = (location.hash.slice(2) || "home").split("?"), [pg, sub] = path.split("/");
+  gridFn = null; sugFn = null;
+  (V[pg] || V.home)(sub, q);
+  document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.t === pg || (pg === "checkout" && a.dataset.t === "cart") || (pg === "signin" && a.dataset.t === "account")));
+  $("#pin").textContent = area ? "Pincode " + area : "Enter pincode";
+  badge();
+}
+window.addEventListener("hashchange", route);
+function badge(){ const n = Object.values(cart).reduce((a, b) => a + b, 0), c = $("#cc"); c.textContent = n; c.hidden = !n; }
+function needSignin(){ if (signedIn()) return false; store.set("ab_next", location.hash || "#/home"); go("#/signin"); return true; }
+if (!store.get("ab_cookie", false)) $("#cookie").hidden = false;
+$("#cookieOk").onclick = () => { store.set("ab_cookie", true); $("#cookie").hidden = true; };
+
+/* ---------- Products ---------- */
+try { db.enablePersistence({ synchronizeTabs: true }).catch(() => {}); } catch {}   // Firestore keeps its own offline copy too
+function cacheProducts(){
+  const slim = products.map(p => ({ ...p, imageUrl: (p.imageUrl || "").length < 15000 ? p.imageUrl : "" }));
+  try { localStorage.setItem("ab_pcache", JSON.stringify(slim)); } catch { try { localStorage.setItem("ab_pcache", JSON.stringify(slim.map(p => ({ ...p, imageUrl: "" })))); } catch {} }
+}
+const PTTL = 5 * 60 * 1000;   // products are re-read from the database at most once per 5 minutes per device
+let pFetch = null;
+function afterProducts(){
+  const h = location.hash;
+  if ($("#g") || $("#sg")) { if ($("#sq") || h.startsWith("#/products")) drawGrid(); else route(); }
+  else if (!h || h === "#/home" || h === "#/cart") route();
+}
+function fetchProducts(force){
+  const age = Date.now() - store.get("ab_pcache_t", 0);
+  if (!force && products.length && age < PTTL) { console.info("[cache] products: using saved copy,", products.length, "items,", Math.round(age / 1000) + "s old (no database call)"); loaded = true; return Promise.resolve(); }
+  if (pFetch) return pFetch;
+  console.info("[cache] products: reading from database");
+  pFetch = db.collection("products").get().then(snap => {
+    products = snap.docs.map(d => ({ id: d.id, ...d.data() })); loaded = true;
+    store.set("ab_pcache_t", Date.now()); cacheProducts(); afterProducts();
+  }).catch(() => { loaded = true; toast("Could not refresh. Showing saved items."); afterProducts(); }).finally(() => { pFetch = null; });
+  return pFetch;
+}
+fetchProducts();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) fetchProducts(); });
+const updatedAgo = () => { const t = store.get("ab_pcache_t", 0); if (!t) return ""; const m = Math.floor((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.floor(m / 60) + " h ago"; };
+const card = p => { const n = cart[p.id] || 0, out = !(p.stock > 0);
+  return `<article class="p"><div class="img">${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="" loading="lazy">` : esc((p.name || "?")[0].toUpperCase())}</div>
+  <div class="b"><h3>${esc(p.name)}</h3><span class="s">${esc(p.shopName)} · ${esc(p.unit)}</span><div class="row"><span class="pr"><strong>${rupees(p.price)}</strong>${p.mrp > p.price ? `<span><span class="mrp">MRP \u20B9\u00A0<s>${Number(p.mrp).toLocaleString("en-IN", { maximumFractionDigits: 2 })}</s></span><span class="off">${Math.round((p.mrp - p.price) / p.mrp * 100)}% off</span></span>` : ""}</span>
+  ${out ? `<span class="s">Out of stock</span>` : n ? `<span class="qty"><button data-m="${p.id}" aria-label="Remove one">−</button>${n}<button data-a="${p.id}" aria-label="Add one">+</button></span>` : `<button class="add" data-a="${p.id}">Add</button>`}</div></div></article>`; };
+const skel = n => "<div class='p sk'><div class='img'></div><div class='b'><i></i><i></i></div></div>".repeat(n);
+const loadingNow = () => !loaded && !products.length;
+const gridHTML = l => loadingNow() ? `<div class="grid">${skel(6)}</div>` : l.length ? `<div class="grid">${l.map(card).join("")}</div>` : `<p class="muted">${area ? "No products found." : "Enter your pincode on the Home page to see products."}</p>`;
+const stripHTML = (t, l) => loadingNow() ? `<h2>${t}</h2><div class="strip">${skel(4)}</div>` : l.length ? `<h2>${t}</h2><div class="strip">${l.map(card).join("")}</div>` : "";
+const drawGrid = () => { if (gridFn && $("#g")) $("#g").innerHTML = gridFn(); if (sugFn && $("#sg")) $("#sg").innerHTML = sugFn(); };
+
+/* ---------- Smart search: Hindi / Bengali / English names, spelling mistakes, suggestions ---------- */
+const SYN = `onion pyaz piyaz pyaj pyaaz piaz kanda dungri ullipaya vengayam pyas प्याज कांदा পেঁয়াজ পেয়াজ|potato aloo alu aaloo batata urulai आलू আলু|tomato tamatar tamata tamaato टमाटर টমেটো|rice chawal chaal chal bhat arisi चावल চাল ভাত|dal daal lentil lentils pulses toor tur arhar moong masoor chana dhal दाल ডাল|wheat atta gehu gehun flour aata गेहूं आटा আটা|oil tel tail refined तेल তেল|sugar chini cheeni shakkar shakar sakkar चीनी চিনি|salt namak nun noon नमक নুন লবণ|milk doodh dudh dood दूध দুধ|egg eggs anda ande अंडा ডিম dim|garlic lahsun lasun rasun lehsun लहसुन রসুন|ginger adrak ada अदरक আদা|chilli chili chilly mirch mirchi lanka marich मिर्च লংকা|tea chai chay cha चाय চা|coffee kaapi kafi|ghee clarifiedbutter घी ঘি|butter makhan makkhan मक्खन|bread pav pao loaf|paneer cottagecheese chhena|banana kela kola kadali केला কলা|apple seb sev सेब আপেল|lemon nimbu nimboo lime neembu নেবু|coriander dhania dhaniya cilantro धनिया ধনে|turmeric haldi holud हल्दी হলুদ|cumin jeera zeera jira जीरा জিরা|mustard sarson rai sorse सरसों সরিষা|soap sabun saboon साबुन সাবান|biscuit biskut cookies बिस्कुट|semolina suji sooji rava rawa सूजी|besan gramflour बेसन|poha flattenedrice chira पोहा চিড়া|cabbage pattagobhi bandhakopi bandhgobhi पत्तागोभी বাঁধাকপি|cauliflower gobhi phulkopi फूलगोभी ফুলকপি|spinach palak palong पालक পালং|brinjal baingan begun eggplant aubergine बैंगन বেগুন|okra bhindi ladyfinger ladysfinger dherosh ढेरस|peas matar motor मटर মটর|carrot gajar गाजर গাজর|cucumber kheera kakdi shosha khira खीरा শসা|fish machh maach machli mach मछली মাছ|chicken murgi murga murghi मुर्गा মুরগি|mutton gosht khasi lamb meat मटन খাসি|coconut nariyal narkel नारियल নারকেল`.split("|").map(g => g.split(" "));
+const SYNMAP = {}; SYN.forEach((g, i) => g.forEach(w => { SYNMAP[w] = i; }));
+const toks = s => String(s || "").toLowerCase().replace(/[^a-z0-9\u0900-\u097F\u0980-\u09FF]+/g, " ").split(" ").filter(Boolean);
+function lev(a, b){ const m = a.length, n = b.length; let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; } return prev[n]; }
+const gmemo = {};
+function grp(t){ if (t in gmemo) return gmemo[t]; let g = SYNMAP[t] ?? -1;
+  if (g < 0 && t.length >= 4) for (const w in SYNMAP) if (w.length >= 4 && Math.abs(w.length - t.length) <= 1 && lev(t, w) <= (t.length > 6 ? 2 : 1)) { g = SYNMAP[w]; break; }
+  return (gmemo[t] = g); }
+function scoreP(p, qt){ const pt = toks((p.name || "") + " " + (p.category || "")); let sc = 0;
+  for (const q of qt) { const g = grp(q);
+    for (const t of pt) { if (t === q) sc += 5; else if (g >= 0 && grp(t) === g) sc += 4; else if (q.length >= 3 && (t.includes(q) || (t.length >= 3 && q.includes(t)))) sc += 3; else if (q.length >= 4 && lev(q, t) <= (q.length > 6 ? 2 : 1)) sc += 2; } }
+  return sc; }
+const searchProducts = q => { const qt = toks(q); return visible().map(p => [scoreP(p, qt), p]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).map(x => x[1]); };
+const dayN = Math.floor(Date.now() / 864e5), hsh = s => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0) + dayN) | 0, 7);
+function suggest(n = 8, ex = [], hintCat){
+  return visible().filter(p => p.stock > 0 && !ex.includes(p.id)).sort((a, b) => ((hintCat && (b.category === hintCat) - (a.category === hintCat)) || hsh(a.id) - hsh(b.id))).slice(0, n); }
+function change(id, d){
+  const p = products.find(x => x.id === id); if (!p) return;
+  const n = (cart[id] || 0) + d;
+  if (n > p.stock) return toast("Only " + p.stock + " in stock");
+  if (n <= 0) delete cart[id]; else cart[id] = n;
+  saveCart(); badge(); if (gridFn && $("#g")) drawGrid(); else if (location.hash === "#/cart") V.cart();
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-a],[data-m]"); if (b) change(b.dataset.a || b.dataset.m, b.dataset.a ? 1 : -1); });
+
+/* ---------- Pincode ---------- */
+function setPin(v){
+  v = v.trim(); if (!/^\d{6}$/.test(v)) return false;
+  if (v !== area && Object.keys(cart).length) { cart = {}; saveCart(); toast("Cart emptied for the new pincode"); }
+  area = v; store.set("ab_area", v); return true;
+}
+function pinForm(next){
+  $("#pf").onsubmit = e => { e.preventDefault(); if (setPin($("#pi").value)) { go(next); route(); } else $("#pe").textContent = "Enter a valid 6-digit pincode."; };
+}
+V.pincode = () => { view(`<h1 class="pg">Delivery pincode</h1><div class="card"><p class="muted">You will see products only from shops with this pincode.</p><form id="pf" class="pinbox" style="margin-top:10px"><input id="pi" inputmode="numeric" maxlength="6" value="${esc(area)}" aria-label="Pincode"><button class="btn">Save</button></form><p class="err" id="pe" role="alert"></p></div>`); pinForm("#/home"); };
+
+/* ---------- Home, Products, Search ---------- */
+V.home = () => {
+  const vis = visible(), cats = [...new Set(vis.map(p => p.category).filter(Boolean))];
+  view(`<section class="hero"><h1>Fresh groceries from shops in your own area</h1><p>Enter your pincode, order from local shops and pay in cash on delivery.</p>
+  ${area ? `<a class="btn" href="#/products">Browse products</a>` : `<form id="pf" class="pinbox"><input id="pi" inputmode="numeric" maxlength="6" placeholder="6-digit pincode" aria-label="Pincode"><button class="btn">Check</button></form><p class="err" id="pe" role="alert"></p>`}</section>
+  <ul class="trust"><li>Local shops near you</li><li>Cash on delivery</li><li>Your data protected under the DPDP Act, 2023</li></ul>
+  <div id="sg"></div>
+  ${area && cats.length ? `<h2>Shop by category</h2><div class="tiles">${cats.map(c => `<a class="tile" href="#/products?${encodeURIComponent(c)}">${esc(c)}</a>`).join("")}</div>` : ""}
+  ${area && !vis.length ? `<p class="muted">No shops deliver to pincode ${esc(area)} yet.</p>` : ""}
+  <div class="foot"><span class="s">Prices and stock updated ${updatedAgo() || "—"} · <a href="#/home" id="rf">Refresh</a></span><br>Support and grievances: <a href="mailto:support.dsbccl@gmail.com">support.dsbccl@gmail.com</a><br><a href="#/privacy">Privacy Notice (DPDP)</a> · <a href="#/terms">Terms of Use</a></div>`);
+  if ($("#rf")) $("#rf").onclick = e => { e.preventDefault(); toast("Refreshing…"); fetchProducts(true).then(() => toast("Updated")); };
+  if ($("#pf")) pinForm("#/products");
+  sugFn = () => stripHTML("Suggested for you", suggest(8)); drawGrid();
+};
+V.products = (s, q) => {
+  if (q) cat = decodeURIComponent(q);
+  const cats = ["All", ...new Set(visible().map(p => p.category).filter(Boolean))]; if (!cats.includes(cat)) cat = "All";
+  view(`<h1 class="pg">Products</h1><div class="chips">${cats.map(c => `<button class="chip ${c === cat ? "on" : ""}" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div><div id="sg"></div><h2>All products</h2><div id="g"></div>`);
+  gridFn = () => gridHTML(visible().filter(p => cat === "All" || p.category === cat));
+  sugFn = () => stripHTML("Suggested for you", suggest(8, [], cat === "All" ? "" : cat)); drawGrid();
+  document.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { cat = b.dataset.c; V.products(); });
+};
+V.search = () => {
+  view(`<h1 class="pg">Search</h1><input id="sq" type="search" placeholder="Search rice, dal, onion, piyaz…" aria-label="Search products" autocomplete="off"><div id="rc"></div><div id="g"></div><div id="sg"></div>`);
+  let res = [], timer = 0;
+  const recent = () => store.get("ab_recent", []);
+  const drawRecent = () => {
+    const r = recent(); $("#rc").innerHTML = r.length ? `<div class="recent"><span class="s">Recent searches</span><button class="lnk" id="rcl">Clear</button><div class="chips" style="margin:6px 0 0">${r.map(x => `<button class="chip" data-r="${esc(x)}">${esc(x)}</button>`).join("")}</div></div>` : "";
+    document.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { $("#sq").value = b.dataset.r; drawGrid(); });
+    if ($("#rcl")) $("#rcl").onclick = () => { store.set("ab_recent", []); drawRecent(); };
+  };
+  const remember = q => { q = q.trim(); if (q.length < 2) return; store.set("ab_recent", [q, ...recent().filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, 8)); drawRecent(); };
+  gridFn = () => { const q = $("#sq").value.trim(); res = q ? searchProducts(q) : [];
+    return !q ? "" : res.length ? gridHTML(res) : `<p class="muted" style="margin-top:12px">No exact match for “${esc(q)}”. Here are some products you may like:</p>`; };
+  sugFn = () => { const q = $("#sq").value.trim(); return q && res.length >= 4 ? "" : stripHTML(q ? "You may also like" : "Suggested for you", suggest(8, res.map(p => p.id), res[0]?.category)); };
+  $("#sq").oninput = () => { drawGrid(); clearTimeout(timer); timer = setTimeout(() => remember($("#sq").value), 1000); };
+  $("#sq").onkeydown = e => { if (e.key === "Enter") remember($("#sq").value); };
+  drawRecent(); drawGrid();
+};
+
+/* ---------- Cart and checkout ---------- */
+V.cart = () => {
+  const items = cartItems();
+  view(`<h1 class="pg">Your cart</h1>` + (items.length ? `<div class="card">${items.map(({ p, qty }) => `<div class="line"><span>${esc(p.name)}<br><span class="s">${esc(p.shopName)}</span></span><span class="qty"><button data-m="${p.id}" aria-label="Remove one">−</button>${qty}<button data-a="${p.id}" aria-label="Add one">+</button></span><strong>${rupees(p.price * qty)}</strong></div>`).join("")}${totalRows()}</div>
+  <p class="muted">Payment: cash on delivery.</p><a class="btn wide" href="#/checkout">Proceed to checkout</a>` : `<p class="muted" style="margin-bottom:12px">Your cart is empty.</p><a class="btn" href="#/products">Browse products</a>`));
+};
+V.checkout = () => {
+  if (!cartItems().length) return go("#/cart");
+  if (needSignin()) return;
+  if (!/^\d{6}$/.test(area)) return go("#/pincode");
+  if (profile?.minor && parentStatus !== "approved") return view(`<h1 class="pg">Parent approval needed</h1><div class="card"><p>Your parent or guardian has not approved this account yet, so orders are paused.</p></div><a class="btn ghost" href="#/account/privacy">Check status</a>`);
+  view(`<h1 class="pg">Delivery details</h1><div class="card"><label for="cn">Name</label><input id="cn" value="${esc(profile?.name || user.displayName)}" autocomplete="name">
+  <label for="cp">Phone (10 digits)</label><input id="cp" type="tel" inputmode="numeric" maxlength="10" value="${esc(profile?.phone)}" autocomplete="tel">
+  <label for="ca">Full address</label><textarea id="ca" rows="3">${esc(profile?.address)}</textarea>
+  <p class="muted" style="margin-top:10px">Delivering to pincode <strong>${esc(area)}</strong> · <a href="#/pincode">Change</a></p><p class="err" id="ce" role="alert"></p></div>
+  <div class="card">${totalRows()}<p class="muted">Pay ${rupees(cartSum() + DELIVERY_CHARGE)} in cash on delivery.</p></div><button class="btn wide" id="place">Place order</button>`);
+  $("#place").onclick = place;
+};
+const CODE_CH = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function newOrderCode(){   // 4 digits + 2 or 3 letters/digits = 6 or 7 characters
+  const r = new Uint32Array(8); crypto.getRandomValues(r);
+  let c = ""; for (let i = 0; i < 4; i++) c += r[i] % 10;
+  for (let i = 0, n = 2 + (r[4] % 2); i < n; i++) c += CODE_CH[r[5 + i] % CODE_CH.length];
+  return c;
+}
+async function place(){
+  const name = $("#cn").value.trim(), phone = $("#cp").value.replace(/\D/g, "").slice(-10), address = $("#ca").value.trim(), err = $("#ce");
+  if (name.length < 2) return err.textContent = "Enter your name.";
+  if (!/^[6-9]\d{9}$/.test(phone)) return err.textContent = "Enter a valid 10-digit mobile number.";
+  if (address.length < 10) return err.textContent = "Enter your full address.";
+  const items = cartItems(); if (!items.length) return;
+  const btn = $("#place"); btn.disabled = true; err.textContent = "";
+  const orderRef = db.collection("orders").doc(newOrderCode());
+  try {
+    await db.runTransaction(async t => {
+      const refs = items.map(x => db.collection("products").doc(x.p.id)), snaps = await Promise.all(refs.map(r => t.get(r)));
+      snaps.forEach((s, i) => { if (!s.exists || s.data().stock < items[i].qty) throw new Error("“" + items[i].p.name + "” is no longer available in that quantity."); });
+      snaps.forEach((s, i) => t.update(refs[i], { stock: s.data().stock - items[i].qty }));
+      t.set(orderRef, { customerUid: user.uid, customerName: name, customerPhone: phone, address, pincode: area,
+        items: snaps.map((s, i) => ({ productId: items[i].p.id, name: s.data().name, price: s.data().price, qty: items[i].qty, shopId: s.data().shopId, shopName: s.data().shopName })),
+        shopIds: [...new Set(snaps.map(sn => sn.data().shopId))], total: snaps.reduce((a, s, i) => a + s.data().price * items[i].qty, 0), deliveryCharge: DELIVERY_CHARGE,
+        status: "pending", settlement: "none", createdAt: TS(), updatedAt: TS() });
+    });
+    await db.collection("customers").doc(user.uid).set({ name, phone, address, pincode: area, email: user.email || "" }, { merge: true });
+    profile = { ...profile, name, phone, address, pincode: area };
+    cart = {}; saveCart(); try { localStorage.removeItem("ab_orders_" + user.uid); } catch {} fetchProducts(true); toast("Order placed. ID: " + orderRef.id + ". Pay cash on delivery."); go("#/orders");
+  } catch (e) { err.textContent = e.message || "Could not place the order."; btn.disabled = false; fetchProducts(true); }
+}
+
+/* ---------- Orders ---------- */
+const LABEL = { pending: "Waiting for shop", packed: "Packed", out_for_delivery: "Out for delivery", delivered: "Delivered", cancelled: "Cancelled" };
+V.orders = async () => {
+  if (needSignin()) return;
+  const key = "ab_orders_" + user.uid, c = store.get(key, null), OTTL = 60000;
+  view(`<h1 class="pg">My orders</h1><div id="ol" class="muted">Loading…</div>`);
+  const draw = list => { if ($("#ol")) $("#ol").innerHTML = list.length ? list.map(o => `<div class="card"><p class="s">Order ID: <strong>${esc(o.id || "")}</strong></p><div class="line"><strong>${rupees(o.total + (o.deliveryCharge || 0))}</strong><span class="s">${agoText(o.createdAt)}</span></div><p>${esc(o.items.map(i => i.name + " ×" + i.qty).join(", "))}</p><p class="s">${o.deliveryCharge ? "Items " + rupees(o.total) + " + delivery " + rupees(o.deliveryCharge) + " · " : ""}${esc(LABEL[o.status] || o.status)}${o.deliveryPersonName ? " · Delivery by " + esc(o.deliveryPersonName) : ""}</p></div>`).join("") : `<p class="muted">No orders yet.</p>`; };
+  if (c) { draw(c.list); if (Date.now() - c.t < OTTL) { console.info("[cache] orders: using saved copy (no database call)"); return; } }
+  try {
+    console.info("[cache] orders: reading from database");
+    const snap = await db.collection("orders").where("customerUid", "==", user.uid).get();
+    const list = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+      .map(o => ({ id: o.id, total: o.total, deliveryCharge: o.deliveryCharge, status: o.status, deliveryPersonName: o.deliveryPersonName, createdAt: o.createdAt ? { seconds: o.createdAt.seconds } : null, items: (o.items || []).map(i => ({ name: i.name, qty: i.qty })) }));   // only what the list shows: no phone or address is saved on the device
+    store.set(key, { t: Date.now(), list }); draw(list);
+  } catch { if (!c && $("#ol")) $("#ol").innerHTML = "<span class='err'>Could not load orders.</span>"; }
+};
+
+/* ---------- Account ---------- */
+V.account = sub => {
+  if (needSignin()) return;
+  if (sub === "details") return acctDetails();
+  if (sub === "privacy") return acctPrivacy();
+  view(`<h1 class="pg">Account</h1><div class="card"><strong>${esc(profile?.name || user.displayName)}</strong><br><span class="muted">${esc(user.email)}</span></div>
+  <div class="menu"><a href="#/account/details">My details<span>›</span></a><a href="#/account/privacy">Privacy &amp; consents<span>›</span></a><a href="#/orders">My orders<span>›</span></a><a href="#/help">Help &amp; support<span>›</span></a><a href="#/terms">Terms of Use<span>›</span></a><a id="apk" href="apna-bazar.apk" download="Apna-Bazar.apk">Download Android app (APK)<span>⬇</span></a></div>
+  <p class="s" id="apkn" style="margin:-6px 4px 12px">If Android blocks the install, allow “Install unknown apps” for your browser.</p>
+  <button class="btn ghost wide" id="so">Sign out</button>`);
+  if (!/android/i.test(navigator.userAgent)) { $("#apk").hidden = true; $("#apkn").hidden = true; }
+  $("#so").onclick = async () => { try { localStorage.removeItem("ab_orders_" + user.uid); } catch {} await auth.signOut(); toast("Signed out"); go("#/home"); };
+};
+function acctDetails(){
+  view(`<h1 class="pg">My details</h1><div class="card"><p class="muted">${esc(user.email)}</p><label for="pn">Name</label><input id="pn" value="${esc(profile?.name || user.displayName)}">
+  <label for="pp">Phone (10 digits)</label><input id="pp" type="tel" inputmode="numeric" maxlength="10" value="${esc(profile?.phone)}"><label for="pa">Address</label><textarea id="pa" rows="3">${esc(profile?.address)}</textarea><p class="err" id="pe" role="alert"></p></div>
+  <button class="btn wide" id="sv">Save details</button><a class="btn ghost wide" href="#/account">Back</a>`);
+  $("#sv").onclick = async () => {
+    const name = $("#pn").value.trim(), phone = $("#pp").value.replace(/\D/g, "").slice(-10), address = $("#pa").value.trim(), er = $("#pe");
+    if (name.length < 2) return er.textContent = "Enter your name.";
+    if (phone && !/^[6-9]\d{9}$/.test(phone)) return er.textContent = "Enter a valid 10-digit mobile number.";
+    try { await db.collection("customers").doc(user.uid).set({ name, phone, address, email: user.email || "" }, { merge: true }); profile = { ...profile, name, phone, address }; er.textContent = ""; toast("Details saved"); }
+    catch (e) { er.textContent = "Could not save (" + (e.code || e.message) + ")."; }
+  };
+}
+function acctPrivacy(){
+  const c = profile?.consentAt?.toDate ? profile.consentAt.toDate().toLocaleDateString("en-IN") : "";
+  view(`<h1 class="pg">Privacy &amp; consents</h1>
+  <div class="card"><h3>Your consent</h3><p class="muted">${c ? "Given on " + c + " (notice version " + esc(profile.consentVersion || "1.0") + ")." : "No consent record found."}</p>
+  <div class="consentbox" style="margin-top:10px"><strong>Data we process</strong>${DATA_TABLE}</div></div>
+  ${profile?.minor ? `<div class="card"><h3>Parental consent</h3><p class="muted">Status: <strong>${esc(parentStatus || "unknown")}</strong></p></div>` : ""}
+  <div class="menu"><a href="#/privacy">Read the full Privacy Notice<span>›</span></a><a href="#/orders">My orders (data we hold)<span>›</span></a></div>
+  <div class="danger-zone"><h3>Withdraw consent &amp; delete account</h3><p class="muted">This withdraws your consent and permanently erases your profile (name, phone, address, email), then signs you out. It cannot be undone. Records of past orders may be retained as required for accounting and legal obligations.</p>
+  <label for="dt">Type DELETE to confirm</label><input id="dt" autocomplete="off"><p class="err" id="de" role="alert"></p><button class="btn out wide" id="dg">Delete my account</button></div>
+  <a class="btn ghost wide" href="#/account">Back</a>`);
+  $("#dg").onclick = async () => {
+    const er = $("#de"); if ($("#dt").value.trim() !== "DELETE") return er.textContent = "Type DELETE exactly to confirm.";
+    $("#dg").disabled = true;
+    try { await user.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider()); await db.collection("customers").doc(user.uid).delete(); await user.delete(); cart = {}; saveCart(); toast("Your account and consent have been withdrawn"); go("#/home"); }
+    catch (e) { er.textContent = e.code === "auth/popup-closed-by-user" ? "Verification cancelled. Nothing was deleted." : "Could not delete (" + (e.code || e.message) + ")."; $("#dg").disabled = false; }
+  };
+}
+V.help = () => { gridFn = null; view(`<h1 class="pg">Help &amp; support</h1>
+  <div class="card"><h3>Contact us</h3><p class="muted">Write to us and we will reply by email.</p><a class="btn wide" href="mailto:support.dsbccl@gmail.com?subject=Apna%20Bazar%20help">Email support.dsbccl@gmail.com</a></div>
+  <div class="menu" style="padding:4px 16px">
+  <details class="line" style="display:block"><summary>Where is my order?</summary><p class="muted">Open the Orders tab. The status changes from “Waiting for shop” to Packed, Out for delivery and Delivered.</p></details>
+  <details class="line" style="display:block"><summary>I cannot see any products</summary><p class="muted">Products show only from shops with your pincode. Check your pincode at the top of the page, or try again after a moment.</p></details>
+  <details class="line" style="display:block"><summary>How do I change my phone or address?</summary><p class="muted">Account, then My details.</p></details>
+  <details class="line" style="display:block"><summary>How do I withdraw consent or delete my account?</summary><p class="muted">Account, then Privacy &amp; consents, then “Delete my account”.</p></details>
+  <details class="line" style="display:block"><summary>How do I pay?</summary><p class="muted">Cash on delivery. The delivery charge is added when a delivery partner accepts your order.</p></details>
+  <details class="line" style="display:block"><summary>I am under 18</summary><p class="muted">A parent or guardian must verify their email and approve your account on the sign-in page.</p></details></div>
+  <a class="btn ghost wide" href="#/account">Back</a>`); };
+V.privacy = () => docPage("privacy"); V.terms = () => docPage("terms");
+
+/* ---------- Sign-in: adult, or child with parental email verification ---------- */
+const LOCK = 9e5, GAP = 1e4, MAX = 5;
+const authS = () => store.get("ab_auth", { fails: 0, lockUntil: 0, last: 0 });
+function guard(){ const s = authS(), n = Date.now();
+  if (n < s.lockUntil) return "Too many failed attempts. Try again in " + Math.ceil((s.lockUntil - n) / 6e4) + " minute(s).";
+  if (n - s.last < GAP) return "Please wait a few seconds before trying again.";
+  s.last = n; store.set("ab_auth", s); return ""; }
+function failed(){ const s = authS(); s.fails++; if (s.fails >= MAX) { s.lockUntil = Date.now() + LOCK; s.fails = 0; } store.set("ab_auth", s); }
+async function loadProfile(u, extra){
+  try {
+    const ref = db.collection("customers").doc(u.uid), d = await ref.get();
+    if (d.exists) profile = d.data();
+    else { const base = { name: u.displayName || "", email: u.email || "", phone: "", address: "", consentVersion: "1.1", ...(extra || { ageConfirmed: true }) };
+      await ref.set({ ...base, consentAt: TS(), createdAt: TS() }); profile = { ...base, consentAt: firebase.firestore.Timestamp.now() }; }
+    if (profile.minor && profile.parentRequestId) { const r = await db.collection("parentRequests").doc(profile.parentRequestId).get(); parentStatus = r.data()?.status || ""; }
+  } catch (e) { toast("Could not load account (" + (e.code || e.message) + ")"); }
+}
+function signinError(e){ return "Sign-in failed (" + (e.code || e.name || "unknown") + (e.message ? ": " + e.message : "") + "). " + (location.protocol === "file:" ? "Open this page from http://localhost or your hosted link, not from a file. " : ""); }
+V.signin = () => {
+  if (signedIn()) return go(store.get("ab_next", "#/home"));
+  view(`<h1 class="pg">Sign in</h1><div class="seg"><button data-md="adult" class="${mode === "adult" ? "on" : ""}">I am 18 or older</button><button data-md="minor" class="${mode === "minor" ? "on" : ""}">I am under 18</button></div><div id="sw"></div>`);
+  document.querySelectorAll("[data-md]").forEach(b => b.onclick = () => { mode = b.dataset.md; V.signin(); });
+  mode === "adult" ? adultForm() : minorForm();
+};
+function adultForm(){
+  $("#sw").innerHTML = `<p class="muted" style="margin-bottom:8px">Notice and consent under the Digital Personal Data Protection Act, 2023</p>
+  <div class="consentbox"><p><strong>What we process, and why</strong></p>${DATA_TABLE}<p>The shop and delivery partner see only what is needed for your order. We do not sell your data. You can withdraw consent, correct or erase your data any time from Account, or write to support.dsbccl@gmail.com.</p><p><a href="#/privacy">Read the full Privacy Notice</a> · <a href="#/terms">Terms of Use</a></p></div>
+  <label class="ck"><input type="checkbox" id="age"><span>I confirm that I am 18 years of age or older.</span></label>
+  <label class="ck" style="margin-top:0"><input type="checkbox" id="agree"><span>I have read the notice and give my free, specific and informed consent to the processing of my personal data for the purposes listed above.</span></label>
+  <p class="err" id="ae" role="alert"></p><button class="btn wide" id="google">Give consent &amp; continue with Google</button><a class="btn ghost wide" href="#/home" onclick="toast('Without consent we cannot create an account. You can still browse.')">Decline</a>`;
+  $("#google").onclick = async () => {
+    const er = $("#ae"); er.textContent = "";
+    if (!$("#age").checked) return er.textContent = "Please confirm that you are 18 or older. If you are under 18, use the “I am under 18” option.";
+    if (!$("#agree").checked) return er.textContent = "Please read the notice and tick the consent box to continue.";
+    const g = guard(); if (g) return er.textContent = g;
+    try { const r = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); user = r.user; await loadProfile(user); store.set("ab_auth", { fails: 0, lockUntil: 0, last: Date.now() }); toast("Signed in"); go(store.get("ab_next", "#/home")); route(); }
+    catch (e) { if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return; failed(); er.textContent = signinError(e); }
+  };
+}
+function minorForm(){
+  const rid = store.get("ab_req", "");
+  $("#sw").innerHTML = `<div class="card"><h3>Under 18? A parent or guardian must approve</h3><p class="muted">1. Enter your parent or guardian’s email. 2. They receive a link and confirm that they own that email. 3. They review the privacy notice and approve. 4. You can then sign in with Google. We do not track or profile children and show no advertising.</p>
+  <label for="pm">Parent or guardian’s email</label><input id="pm" type="email" autocomplete="off"><p class="err" id="me" role="alert"></p><button class="btn wide" id="sendp">Send verification link</button></div><div id="ps"></div>`;
+  $("#sendp").onclick = async () => {
+    const em = $("#pm").value.trim().toLowerCase(), er = $("#me"); er.textContent = "";
+    if (!/^\S+@\S+\.\S+$/.test(em)) return er.textContent = "Enter a valid email address.";
+    const g = guard(); if (g) return er.textContent = g;
+    try {
+      if (!auth.currentUser) await auth.signInAnonymously();
+      const ref = db.collection("parentRequests").doc();
+      await ref.set({ childUid: auth.currentUser.uid, parentEmail: em, status: "pending", createdAt: TS() });
+      await auth.sendSignInLinkToEmail(em, { url: location.origin + location.pathname + "?req=" + ref.id + "#/parent", handleCodeInApp: true });
+      store.set("ab_req", ref.id); toast("Verification link sent to " + em); minorForm();
+    } catch (e) { failed(); er.textContent = "Could not send (" + (e.code || e.message) + ")."; }
+  };
+  if (!rid) return;
+  if (reqUnsub) reqUnsub();
+  reqUnsub = db.collection("parentRequests").doc(rid).onSnapshot(s => {
+    const st = s.data()?.status, box = $("#ps"); if (!box) return;
+    if (st === "approved") { box.innerHTML = `<div class="card"><h3>Approved by your parent or guardian</h3><button class="btn wide" id="gl">Continue with Google</button><p class="err" id="ge" role="alert"></p></div>`;
+      $("#gl").onclick = async () => { try { const cu = auth.currentUser; if (!cu || !cu.isAnonymous) throw new Error("Please send a new verification link from this device."); const r = await cu.linkWithPopup(new firebase.auth.GoogleAuthProvider()); user = r.user; await loadProfile(user, { minor: true, parentRequestId: rid }); store.set("ab_req", ""); go(store.get("ab_next", "#/home")); route(); } catch (e) { $("#ge").textContent = signinError(e); } }; }
+    else if (st === "declined") box.innerHTML = `<div class="card"><p class="err">Your parent or guardian declined. An account cannot be created.</p></div>`;
+    else box.innerHTML = `<div class="card"><p class="muted">Waiting for your parent or guardian to open the link we emailed and approve. They should do this on their own device.</p></div>`;
+  });
+}
+/* Parent opens the emailed link: verify mailbox, then approve or decline */
+V.parent = () => {
+  parentMode = true; const rid = new URLSearchParams(location.search).get("req");
+  if (!rid || !auth.isSignInWithEmailLink(location.href)) return view(`<h1 class="pg">Parental approval</h1><div class="card"><p>This link is not valid. Ask the child to send a new verification link.</p></div>`);
+  view(`<h1 class="pg">Parental approval</h1><div class="card"><p>To continue, confirm the email address where you received this link.</p><label for="pe2">Your email</label><input id="pe2" type="email"><p class="err" id="pee" role="alert"></p><button class="btn wide" id="pv">Verify email</button></div>`);
+  $("#pv").onclick = async () => {
+    try {
+      await auth.signInWithEmailLink($("#pe2").value.trim().toLowerCase(), location.href);
+      const d = await db.collection("parentRequests").doc(rid).get();
+      view(`<h1 class="pg">Parental approval</h1><div class="card"><p>Your child has asked to create an Apna Bazar account to order groceries. As parent or guardian, please review how their data is used:</p><div class="consentbox">${DATA_TABLE}<p>No tracking, profiling or advertising is used for children. You can ask us to erase the account any time: support.dsbccl@gmail.com. <a href="#/privacy">Privacy Notice</a></p></div>
+      <p class="err" id="pde" role="alert"></p><button class="btn wide" id="ok">I am the parent or guardian and I approve</button><button class="btn ghost wide" id="no">Decline</button></div>`);
+      const decide = async st => { try { await db.collection("parentRequests").doc(d.id).update({ status: st, decidedAt: TS() }); await auth.signOut(); view(`<h1 class="pg">Thank you</h1><div class="card"><p>Your decision (${st}) has been recorded. You can close this page.</p></div>`); } catch (e) { $("#pde").textContent = "Could not record (" + (e.code || e.message) + ")."; } };
+      $("#ok").onclick = () => decide("approved"); $("#no").onclick = () => decide("declined");
+    } catch (e) { $("#pee").textContent = "Could not verify (" + (e.code || e.message) + ")."; }
+  };
+};
+
+auth.onAuthStateChanged(async u => {
+  user = u; profile = null; parentStatus = "";
+  if (u && !u.isAnonymous && !parentMode) await loadProfile(u);
+  route();
+});
+route();
+</script></body></html>
